@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { motion } from 'motion/react';
 import { Check, Zap } from 'lucide-react';
 
 const plans = [
@@ -51,33 +50,25 @@ const PricingSection = () => {
     <section className="py-24 bg-brand-bg/50">
       <div className="site-container">
         <div className="text-center mb-16">
-          <motion.h2 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+          <h2
+            data-gsap-reveal="gsap"
             className="text-4xl md:text-6xl font-black mb-4 uppercase"
           >
             Simple <span className="internal-gradient">Pricing</span> Plans
-          </motion.h2>
-          <motion.p 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
+          </h2>
+          <p
+            data-gsap-reveal="gsap"
             className="text-brand-text/60 max-w-2xl mx-auto text-xs font-black uppercase tracking-widest"
           >
             Choose the plan that fits your needs. No hidden fees, cancel anytime.
-          </motion.p>
+          </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {plans.map((plan, index) => (
-            <motion.div
+          {plans.map((plan) => (
+            <div
               key={plan.name}
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.1 }}
+              data-gsap-reveal="gsap"
               className={`relative rounded-[2rem] p-10 border transition-all duration-500 ${
                 plan.recommended 
                 ? 'bg-primary/5 border-primary scale-105 z-10' 
@@ -119,7 +110,7 @@ const PricingSection = () => {
               }`}>
                 Get Started
               </button>
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>

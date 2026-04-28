@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
 import Image from 'next/image';
 import {
   Timer,
@@ -181,9 +180,8 @@ const GiveawayPost = ({ giveaway }: { giveaway: Giveaway }) => {
   const hasGiveawayImage = Boolean(giveawayImageSrc);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
+    <div
+      data-gsap-reveal="gsap"
       className="glass rounded-2xl border border-white/5 bg-[#1C1C1E]/50 overflow-hidden shadow-2xl mb-8 group"
     >
       <div className="p-4 flex items-center justify-between">
@@ -335,64 +333,55 @@ const GiveawayPost = ({ giveaway }: { giveaway: Giveaway }) => {
         </button>
       </div>
 
-      <AnimatePresence>
-        {showComments && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden bg-black/10"
-          >
-            <div className="p-4 space-y-4 border-t border-white/5 max-h-[300px] overflow-y-auto no-scrollbar">
-              {localComments.map((comment, i) => (
-                <div key={i} className="flex gap-3">
-                  <div className="w-8 h-8 rounded-full bg-white/5 flex-shrink-0 border border-white/10 overflow-hidden">
-                    <Image
-                      src={comment.userPhoto || `https://ui-avatars.com/api/?name=${comment.userName}`}
-                      alt={comment.userName}
-                      width={32}
-                      height={32}
-                      className="object-cover"
-                    />
-                  </div>
-                  <div className="bg-white/5 rounded-[1.25rem] px-4 py-2.5 flex-1 relative">
-                    <div className="text-[10px] font-black text-brand-text uppercase mb-1">{comment.userName}</div>
-                    <p className="text-xs text-brand-text/60 leading-relaxed">{comment.text}</p>
-                    <div className="text-[9px] text-brand-text/20 font-black uppercase mt-2">
-                      {comment.createdAt?.toDate?.()?.toLocaleDateString() || 'Recently'}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <form onSubmit={handleComment} className="p-4 border-t border-white/5 flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full border border-primary/20 overflow-hidden flex-shrink-0">
+      <div data-open={showComments ? 'true' : 'false'} className="giveaway-comments-panel bg-black/10">
+        <div className="p-4 space-y-4 border-t border-white/5 max-h-[300px] overflow-y-auto no-scrollbar">
+          {localComments.map((comment, i) => (
+            <div key={i} className="flex gap-3">
+              <div className="w-8 h-8 rounded-full bg-white/5 flex-shrink-0 border border-white/10 overflow-hidden">
                 <Image
-                  src={profile?.photoURL || `https://ui-avatars.com/api/?name=${profile?.displayName}`}
-                  alt="You"
+                  src={comment.userPhoto || `https://ui-avatars.com/api/?name=${comment.userName}`}
+                  alt={comment.userName}
                   width={32}
                   height={32}
                   className="object-cover"
                 />
               </div>
-              <div className="flex-1 relative">
-                <input
-                  type="text"
-                  placeholder="Write a public comment..."
-                  value={commentText}
-                  onChange={(e) => setCommentText(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-full py-2.5 px-6 text-xs text-brand-text focus:outline-none focus:border-primary/50"
-                />
-                <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 p-2 hover:text-primary transition-colors">
-                  <Send className="w-4 h-4" />
-                </button>
+              <div className="bg-white/5 rounded-[1.25rem] px-4 py-2.5 flex-1 relative">
+                <div className="text-[10px] font-black text-brand-text uppercase mb-1">{comment.userName}</div>
+                <p className="text-xs text-brand-text/60 leading-relaxed">{comment.text}</p>
+                <div className="text-[9px] text-brand-text/20 font-black uppercase mt-2">
+                  {comment.createdAt?.toDate?.()?.toLocaleDateString() || 'Recently'}
+                </div>
               </div>
-            </form>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.div>
+            </div>
+          ))}
+        </div>
+
+        <form onSubmit={handleComment} className="p-4 border-t border-white/5 flex items-center gap-3">
+          <div className="w-8 h-8 rounded-full border border-primary/20 overflow-hidden flex-shrink-0">
+            <Image
+              src={profile?.photoURL || `https://ui-avatars.com/api/?name=${profile?.displayName}`}
+              alt="You"
+              width={32}
+              height={32}
+              className="object-cover"
+            />
+          </div>
+          <div className="flex-1 relative">
+            <input
+              type="text"
+              placeholder="Write a public comment..."
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+              className="w-full bg-white/5 border border-white/10 rounded-full py-2.5 px-6 text-xs text-brand-text focus:outline-none focus:border-primary/50"
+            />
+            <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 p-2 hover:text-primary transition-colors">
+              <Send className="w-4 h-4" />
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 };
 
@@ -455,10 +444,8 @@ export default function GiveawayPageClient() {
   return (
     <main className="min-h-screen page-navbar-spacing pb-20 px-4 bg-brand-bg relative overflow-hidden">
       <div className="max-w-3xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-100px' }}
+        <div
+          data-gsap-reveal="gsap"
           className="flex items-center justify-between mb-10"
         >
           <div className="min-w-0">
@@ -485,27 +472,23 @@ export default function GiveawayPageClient() {
               </div>
             )}
           </div>
-        </motion.div>
+        </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-100px' }}
+        <div
+          data-gsap-reveal="gsap"
           className="space-y-4 mt-4"
         >
           {giveaways.map((item) => (
             <GiveawayPost key={item.id} giveaway={item} />
           ))}
-        </motion.div>
+        </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-100px' }}
+        <div
+          data-gsap-reveal="gsap"
           className="text-center mt-20 opacity-20 hover:opacity-100 transition-opacity"
         >
           <p className="text-[10px] font-black uppercase tracking-[0.3em] text-brand-text">You reached the end</p>
-        </motion.div>
+        </div>
       </div>
     </main>
   );

@@ -12,6 +12,7 @@ import AnimatedBackground from '@/components/AnimatedBackground';
 import { ToastProvider } from '@/components/ToastProvider';
 import UserOrderTicker from '@/components/UserOrderTicker';
 import LenisProvider from '@/components/LenisProvider';
+import GsapSectionAnimator from '@/components/GsapSectionAnimator';
 import ChunkLoadRecovery from '@/components/ChunkLoadRecovery';
 import GlobalPromoTicker from '@/components/GlobalPromoTicker';
 import { CORE_KEYWORDS, SITE_DESCRIPTION, SITE_NAME, createPageMetadata, getSiteUrl } from '@/lib/seo';
@@ -34,9 +35,9 @@ export const metadata: Metadata = {
   },
   metadataBase: new URL(siteUrl),
   icons: {
-    icon: '/favicon.png',
-    shortcut: '/favicon.png',
-    apple: '/favicon.png',
+    icon: '/favicon.svg',
+    shortcut: '/favicon.svg',
+    apple: '/favicon.svg',
   },
 };
 
@@ -81,6 +82,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <SettingsProvider>
                 <ToastProvider>
                   <LenisProvider />
+                  <GsapSectionAnimator />
                   <ChunkLoadRecovery />
                   <GlobalPromoTicker />
                   <Navbar />

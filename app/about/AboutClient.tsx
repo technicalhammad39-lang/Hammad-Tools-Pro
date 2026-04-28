@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { motion } from 'motion/react';
 import { Shield, Sparkles, Send, Globe, Users, Award, PlaySquare, Store, Ghost, Music } from 'lucide-react';
 import { FaFacebook, FaInstagram, FaWhatsapp, FaTiktok, FaSnapchat, FaYoutube, FaGoogle } from 'react-icons/fa6';
 import Image from 'next/image';
@@ -16,10 +15,8 @@ export default function AboutClient() {
         
         {/* Header Section */}
         <div className="text-center mb-12 md:mb-24">
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-100px' }}
+          <div
+            data-gsap-reveal="gsap"
             className="flex flex-col items-center gap-0 md:gap-2 mb-6 md:mb-10"
           >
             <span className="text-2xl sm:text-3xl md:text-6xl font-serif italic text-white normal-case leading-tight">Welcome to</span> 
@@ -29,25 +26,20 @@ export default function AboutClient() {
             >
               Hammad Tools
             </span>
-          </motion.div>
-          <motion.p 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-100px' }}
-            transition={{ delay: 0.1 }}
+          </div>
+          <p
+            data-gsap-reveal="gsap"
             className="text-brand-text/50 font-medium max-w-2xl mx-auto leading-relaxed md:text-lg px-4 mt-2 md:mt-0"
           >
             We don&apos;t just provide access; we build bridges to premium digital ecosystems. 
             Experience unparalleled speed, security, and global support.
-          </motion.p>
+          </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center mb-32">
           {/* CEO Message Block */}
-          <motion.div 
-            initial={{ opacity: 0, x: -30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
+          <div
+            data-gsap-reveal="gsap"
             className="relative"
           >
             <div className="glass p-6 md:p-10 rounded-[2.5rem] border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-xl relative overflow-hidden bg-white/5">
@@ -66,13 +58,11 @@ export default function AboutClient() {
                   </p>
                </div>
             </div>
-          </motion.div>
+          </div>
 
           {/* Vision/Stats Block */}
-          <motion.div 
-            initial={{ opacity: 0, x: 30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
+          <div
+            data-gsap-reveal="gsap"
             className="grid grid-cols-2 lg:grid-cols-2 gap-4 md:gap-6"
           >
             <div className="p-5 md:p-8 rounded-3xl border border-black/10 shadow-2xl flex flex-col items-center justify-center text-center bg-[#F7F7F7]">
@@ -103,7 +93,7 @@ export default function AboutClient() {
               <h3 className="text-2xl md:text-4xl font-black text-[#111111]">24/7</h3>
               <p className="text-[8px] md:text-[10px] uppercase font-black tracking-widest text-black/70 mt-1">Security & Support</p>
             </div>
-          </motion.div>
+          </div>
         </div>
 
         {/* Oversized Interactive Social Links */}
@@ -126,20 +116,19 @@ export default function AboutClient() {
                };
                const theme = styles[link.colorTheme];
                return (
-                 <motion.a 
+                 <a
                   key={idx}
+                  data-gsap-reveal="gsap"
                   href={link.url}
                   target="_blank"
                   rel="noreferrer"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className={`relative overflow-hidden group glass p-6 md:p-10 rounded-[2.5rem] border ${theme.border} ${theme.shadow} transition-all flex flex-col items-center text-center`}
+                  className={`relative overflow-hidden group glass p-6 md:p-10 rounded-[2.5rem] border ${theme.border} ${theme.shadow} transition-all flex flex-col items-center text-center hover:scale-[1.05] active:scale-[0.95]`}
                 >
                   <div className={`absolute inset-0 bg-gradient-to-br ${theme.bg} opacity-0 group-hover:opacity-100 transition-opacity`}></div>
                   <link.icon className={`w-12 h-12 md:w-20 md:h-20 ${theme.text} mb-4 md:mb-6 group-hover:scale-110 transition-transform duration-500`} />
                   <h3 className="text-lg md:text-xl font-black uppercase tracking-widest text-brand-text mb-1 md:mb-2">{link.title}</h3>
                   <p className="text-[10px] md:text-xs font-bold text-brand-text/50 uppercase">{link.subtitle}</p>
-                </motion.a>
+                </a>
                );
              })}
           </div>

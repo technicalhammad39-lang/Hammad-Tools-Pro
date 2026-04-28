@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { motion } from 'motion/react';
 import { Shield } from 'lucide-react';
 
 const PrivacyPage = () => {
@@ -12,21 +11,17 @@ const PrivacyPage = () => {
           <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center text-primary mx-auto mb-6">
             <Shield className="w-8 h-8" />
           </div>
-          <motion.h1 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-100px' }}
+          <h1
+            data-gsap-reveal="gsap"
             className="text-5xl font-bold mb-4"
           >
             Privacy <span className="text-primary">Policy</span>
-          </motion.h1>
+          </h1>
           <p className="text-brand-text/40">Last Updated: March 12, 2026</p>
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-100px' }}
+        <div
+          data-gsap-reveal="gsap"
           className="glass rounded-[2.5rem] p-12 border-white/10 prose prose-invert max-w-none"
         >
           <p className="text-lg text-brand-text/60 leading-relaxed mb-8">
@@ -57,7 +52,7 @@ const PrivacyPage = () => {
           <p className="text-brand-text/60 mb-6">
             We may update our Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page.
           </p>
-        </motion.div>
+        </div>
       </div>
     </div>
   );

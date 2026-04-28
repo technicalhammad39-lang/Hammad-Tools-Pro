@@ -1,10 +1,8 @@
 'use client';
 
 import React from 'react';
-import { motion } from 'motion/react';
 import Image from 'next/image';
 import { Star, Quote } from 'lucide-react';
-import Marquee from 'react-fast-marquee';
 
 const testimonials = [
   {
@@ -90,21 +88,19 @@ const TestimonialCard = ({ t }: { t: Testimonial; i: number }) => (
 );
 
 const Testimonials = () => {
-  const row1 = testimonials.slice(0, 3);
-  const row2 = testimonials.slice(3, 6);
+  const firstRow = testimonials.slice(0, 3);
+  const secondRow = testimonials.slice(3, 6);
 
   return (
     <section className="pt-10 pb-6 md:pt-20 md:pb-12 relative bg-white/[0.01] overflow-hidden">
       <div className="site-container">
         <div className="text-center mb-8 md:mb-20">
-          <motion.h2 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+          <h2
+            data-gsap-reveal="gsap"
             className="text-3xl md:text-7xl font-black mb-3 md:mb-6 text-brand-text uppercase"
           >
             <span className="font-serif italic text-white normal-case">What Our</span> <span className="internal-gradient">Legends</span> Say
-          </motion.h2>
+          </h2>
           <p className="text-brand-text/60 text-[10px] md:text-sm font-black uppercase tracking-widest">Join 10,000+ satisfied users worldwide.</p>
         </div>
 
@@ -113,32 +109,24 @@ const Testimonials = () => {
           <div className="pointer-events-none absolute inset-y-0 left-0 w-16 sm:w-24 lg:w-40 bg-gradient-to-r from-brand-bg to-transparent z-10" />
           <div className="pointer-events-none absolute inset-y-0 right-0 w-16 sm:w-24 lg:w-40 bg-gradient-to-l from-brand-bg to-transparent z-10" />
 
-          <Marquee speed={20} gradient={false} pauseOnHover={true}>
-            {testimonials.slice(0, 3).map((t, i) => (
-              <div key={i} className="mx-2 sm:mx-3 md:mx-4 w-[220px] sm:w-[260px] md:w-[320px] lg:w-[360px]">
-                <TestimonialCard t={t} i={i} />
-              </div>
-            ))}
-            {/* Repeat for seamless loop on wide screens if needed */}
-            {testimonials.slice(0, 3).map((t, i) => (
-              <div key={i + 10} className="mx-2 sm:mx-3 md:mx-4 w-[220px] sm:w-[260px] md:w-[320px] lg:w-[360px]">
-                <TestimonialCard t={t} i={i} />
-              </div>
-            ))}
-          </Marquee>
-          <Marquee speed={15} direction="right" gradient={false} pauseOnHover={true}>
-            {testimonials.slice(3, 6).map((t, i) => (
-              <div key={i} className="mx-2 sm:mx-3 md:mx-4 w-[220px] sm:w-[260px] md:w-[320px] lg:w-[360px]">
-                <TestimonialCard t={t} i={i} />
-              </div>
-            ))}
-            {/* Repeat for seamless loop on wide screens if needed */}
-            {testimonials.slice(3, 6).map((t, i) => (
-              <div key={i + 20} className="mx-2 sm:mx-3 md:mx-4 w-[220px] sm:w-[260px] md:w-[320px] lg:w-[360px]">
-                <TestimonialCard t={t} i={i} />
-              </div>
-            ))}
-          </Marquee>
+          <div className="testimonial-marquee">
+            <div className="testimonial-marquee-track">
+              {[...firstRow, ...firstRow, ...firstRow].map((t, i) => (
+                <div key={`row-1-${i}`} className="mx-2 sm:mx-3 md:mx-4 w-[220px] sm:w-[260px] md:w-[320px] lg:w-[360px] shrink-0">
+                  <TestimonialCard t={t} i={i} />
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="testimonial-marquee">
+            <div className="testimonial-marquee-track testimonial-marquee-track-reverse">
+              {[...secondRow, ...secondRow, ...secondRow].map((t, i) => (
+                <div key={`row-2-${i}`} className="mx-2 sm:mx-3 md:mx-4 w-[220px] sm:w-[260px] md:w-[320px] lg:w-[360px] shrink-0">
+                  <TestimonialCard t={t} i={i} />
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </section>

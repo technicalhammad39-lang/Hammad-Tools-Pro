@@ -2,7 +2,6 @@
 
 import React, { useSyncExternalStore } from 'react';
 import { usePathname } from 'next/navigation';
-import { motion } from 'motion/react';
 
 type SnowParticleConfig = {
   leftPercent: number;
@@ -12,7 +11,7 @@ type SnowParticleConfig = {
   delay: number;
 };
 
-const SNOW_PARTICLE_COUNT = 50;
+const SNOW_PARTICLE_COUNT = 10;
 
 function seededRandom(seed: number) {
   const x = Math.sin(seed * 9999.17) * 10000;
@@ -42,73 +41,37 @@ function useHydrated() {
 const AnimatedBackground = () => {
   const pathname = usePathname();
   const isHydrated = useHydrated();
-  const showParticles = ['/', '/about', '/services', '/blogs', '/giveaway'].includes(pathname);
+  const showParticles =
+    pathname === '/' ||
+    pathname.startsWith('/about') ||
+    pathname.startsWith('/services') ||
+    pathname.startsWith('/blogs') ||
+    pathname.startsWith('/giveaway');
 
   return (
     <div className="fixed inset-0 -z-50 overflow-hidden pointer-events-none bg-[#0A0A0A]">
-      {/* 3D-like Glowing Orbs */}
-      <motion.div
-        animate={{
-          x: [0, 100, 0],
-          y: [0, 50, 0],
-          scale: [1, 1.2, 1],
-        }}
-        transition={{
-          duration: 15,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
-        className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-[#FFD600]/5 rounded-full blur-[120px]"
-      />
-      <motion.div
-        animate={{
-          x: [0, -80, 0],
-          y: [0, 120, 0],
-          scale: [1, 1.1, 1],
-        }}
-        transition={{
-          duration: 12,
-          repeat: Infinity,
-          ease: "easeInOut",
-          delay: 2,
-        }}
-        className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-[#FF8C2A]/5 rounded-full blur-[150px]"
-      />
+      <div className="ambient-orb ambient-orb-primary" />
+      <div className="ambient-orb ambient-orb-secondary" />
 
-      {/* Snowfall/Particle Animation - Only render on specific routes */}
       {isHydrated && showParticles && (
         <div className="absolute inset-0 pointer-events-none">
           {SNOW_PARTICLES.map((particle, i) => (
-            <motion.div
+            <div
               key={`snow-${i}`}
-              initial={{ 
-                opacity: 0, 
-                y: -20,
-                x: 0,
-                scale: particle.scale,
-              }}
-              animate={{
-                opacity: [0, 0.4, 0],
-                y: ["0%", "100%"],
-                x: [0, particle.driftPx],
-              }}
-              transition={{
-                duration: particle.duration,
-                repeat: Infinity,
-                ease: "linear",
-                delay: particle.delay,
-              }}
-              className="absolute w-1 h-1 bg-white rounded-full blur-[1px]"
+              className="absolute w-1 h-1 rounded-full bg-white/60 blur-[1px] ambient-snow-particle"
               style={{
                 left: `${particle.leftPercent}%`,
+                transform: `scale(${particle.scale})`,
+                animationDelay: `${particle.delay}s`,
+                animationDuration: `${particle.duration}s`,
+                ['--drift-x' as string]: `${particle.driftPx}px`,
               }}
             />
           ))}
         </div>
       )}
 
-      {/* Grainy Texture Overlay */}
-      <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 contrast-150 brightness-50" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,214,0,0.06),transparent_55%),radial-gradient(circle_at_80%_70%,rgba(255,140,42,0.05),transparent_60%)]" />
     </div>
   );
 };

@@ -17,7 +17,8 @@ import {
 import { collection, doc, getDocs, limit, onSnapshot, orderBy, query, serverTimestamp, writeBatch } from 'firebase/firestore';
 import { useSearchParams } from 'next/navigation';
 import { onIdTokenChanged } from 'firebase/auth';
-import { auth, db } from '@/firebase';
+import { db } from '@/firebase';
+import { auth } from '@/firebase-auth';
 import type { OrderRecord } from '@/lib/types/domain';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ToastProvider';

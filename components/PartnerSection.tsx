@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { motion } from 'motion/react';
 import Image from 'next/image';
 import { ExternalLink, Globe, Zap, Crown } from 'lucide-react';
 import { useSettings } from '@/context/SettingsContext';
@@ -34,26 +33,23 @@ const PartnerSection = () => {
       
       <div className="site-container">
         <div className="text-center mb-10 md:mb-20">
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+          <h2
+            data-gsap-reveal="gsap"
             className="text-4xl sm:text-6xl md:text-7xl font-black uppercase text-brand-text mb-4 md:mb-6 flex flex-col md:block"
           >
             <span className="font-serif italic text-white normal-case md:inline">Trusted </span>
             <span className="internal-gradient md:inline">Partners</span>
-          </motion.h2>
+          </h2>
           <p className="text-brand-text/40 text-sm font-black uppercase tracking-widest max-w-xl mx-auto">Verified partners empowering the Hammad Tools platform.</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10 w-full xl:max-w-[92rem] mx-auto">
           {partners.map((partner, index) => (
-            <motion.div
+            <div
               key={partner.name}
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              whileHover={{ y: -10 }}
+              data-gsap-reveal="gsap"
               className="group relative"
+              style={{ transitionDelay: `${Math.min(index * 70, 210)}ms` }}
             >
               <a 
                 href={partner.url} 
@@ -101,7 +97,7 @@ const PartnerSection = () => {
                   <Zap className="w-5 h-5 text-primary opacity-60 group-hover:opacity-100 transition-opacity" />
                 </div>
               </a>
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>

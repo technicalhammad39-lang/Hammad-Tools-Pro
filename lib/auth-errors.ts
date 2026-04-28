@@ -65,7 +65,7 @@ export function getSafeAuthErrorMessage(error: unknown, action: AuthAction = 'ge
     if (code.includes('invalid-email')) {
       return 'Please enter a valid email address.';
     }
-    return 'If this email is registered, a reset link will be sent shortly.';
+    return 'If this email exists, a password reset link has been sent.';
   }
 
   if (action === 'logout') {
@@ -74,4 +74,3 @@ export function getSafeAuthErrorMessage(error: unknown, action: AuthAction = 'ge
 
   return 'Something went wrong. Please try again.';
 }
-

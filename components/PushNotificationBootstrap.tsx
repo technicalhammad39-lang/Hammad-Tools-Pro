@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { auth } from '@/firebase';
+import { auth } from '@/firebase-auth';
 import { getClientFcmToken, subscribeForegroundMessages } from '@/lib/firebase-messaging';
 
 export default function PushNotificationBootstrap() {

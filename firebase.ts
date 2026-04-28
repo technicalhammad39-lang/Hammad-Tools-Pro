@@ -1,13 +1,15 @@
-import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider } from 'firebase/auth';
+import { getApp, getApps, initializeApp } from 'firebase/app';
 import { getFirestore, doc, getDocFromServer } from 'firebase/firestore';
-import firebaseConfig from './firebase-config.json';
+import {
+  firebaseClientConfig,
+  firestoreDatabaseId,
+  logMissingFirebasePublicEnv,
+} from '@/lib/firebase-public-env';
 
-export const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
-const firestoreDatabaseId = (firebaseConfig as { firestoreDatabaseId?: string }).firestoreDatabaseId;
+logMissingFirebasePublicEnv('firebase-client');
+
+export const app = getApps().length ? getApp() : initializeApp(firebaseClientConfig);
 export const db = firestoreDatabaseId ? getFirestore(app, firestoreDatabaseId) : getFirestore(app);
-export const googleProvider = new GoogleAuthProvider();
 
 // Validate Connection to Firestore
 export async function testConnection() {

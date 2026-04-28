@@ -1,10 +1,9 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { motion } from 'motion/react';
 import { ArrowRight, Layout, Star, Clock, Loader2, Tag } from 'lucide-react';
 import { db } from '@/firebase';
-import { collection, onSnapshot, orderBy, query } from 'firebase/firestore';
+import { collection, getDocs, orderBy, query } from 'firebase/firestore';
 import Link from 'next/link';
 import { useSettings } from '@/context/SettingsContext';
 import { resolveImageSource } from '@/lib/image-display';
@@ -37,19 +36,26 @@ export default function AgencyServicesPage() {
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    const unsubscribeServices = onSnapshot(
-      query(collection(db, 'agency_services'), orderBy('createdAt', 'desc')),
-      (snapshot) => {
+    let mounted = true;
+    async function loadServices() {
+      try {
+        const snapshot = await getDocs(query(collection(db, 'agency_services'), orderBy('createdAt', 'desc')));
+        if (!mounted) {
+          return;
+        }
         const docs = snapshot.docs
           .map((doc) => ({ id: doc.id, ...(doc.data() as Omit<AgencyService, 'id'>) }));
         setServices(docs);
-        setLoading(false);
-      },
-      () => setLoading(false)
-    );
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    }
 
+    void loadServices();
     return () => {
-      unsubscribeServices();
+      mounted = false;
     };
   }, []);
 
@@ -82,32 +88,24 @@ export default function AgencyServicesPage() {
     <main className="min-h-screen page-navbar-spacing pb-16 md:pb-20 bg-brand-bg relative overflow-hidden">
       <div className="site-container relative z-10">
         <div className="flex flex-col items-center text-center mb-6 md:mb-12">
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-100px' }}
-            transition={{ delay: 0.1 }}
+          <h1
+            data-gsap-reveal="gsap"
             className="text-4xl md:text-7xl font-black uppercase tracking-tight text-brand-text whitespace-nowrap"
           >
             <span className="font-serif italic text-white normal-case">Premium</span>{' '}
             <span className="internal-gradient">Services</span>
-          </motion.h1>
+          </h1>
 
-          <motion.p
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-100px' }}
-            transition={{ delay: 0.2 }}
+          <p
+            data-gsap-reveal="gsap"
             className="text-brand-text/40 text-[11px] md:text-lg font-medium max-w-2xl mx-auto leading-relaxed mt-3 md:mt-4"
           >
             Request premium agency-grade services directly from the website with secure payment proof and realtime approval tracking.
-          </motion.p>
+          </p>
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-100px' }}
+        <div
+          data-gsap-reveal="gsap"
           className="flex flex-col md:flex-row items-stretch md:items-center gap-3 md:gap-4 mb-6 md:mb-10"
         >
           <div className="relative w-full md:flex-1">
@@ -120,7 +118,7 @@ export default function AgencyServicesPage() {
             />
           </div>
           <div className="hidden md:block text-[9px] font-black uppercase tracking-widest text-brand-text/40">{filteredServices.length} services</div>
-        </motion.div>
+        </div>
 
         {loading ? (
           <div className="flex flex-col items-center justify-center py-40 gap-4">
@@ -145,13 +143,11 @@ export default function AgencyServicesPage() {
                 placeholder: '/services-card.webp',
               });
               return (
-                <motion.div
+                <div
                   key={service.id}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: '-100px' }}
-                  transition={{ delay: index * 0.05 }}
+                  data-gsap-reveal="gsap"
                   className="group relative flex flex-col h-full bg-brand-soft/20 backdrop-blur-3xl border border-white/5 rounded-[2rem] overflow-hidden hover:border-primary/30 transition-all duration-700 hover:shadow-2xl hover:shadow-primary/5 hover:-translate-y-1"
+                  style={{ transitionDelay: `${Math.min(index * 25, 220)}ms` }}
                 >
                   <div className="relative aspect-[16/10] md:aspect-[4/3] overflow-hidden bg-[#0E0E0E]">
                     <Link href={serviceHref} className="absolute inset-0 block" aria-label={`Open ${title}`}>
@@ -204,9 +200,7 @@ export default function AgencyServicesPage() {
                         </Link>
                       </div>
 
-                      <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
+                      <button
                         onClick={() => {
                           const url = buildWhatsappUrl(title);
                           if (url && url !== '#') {
@@ -217,10 +211,10 @@ export default function AgencyServicesPage() {
                       >
                         <span>Request Service</span>
                         <ArrowRight className="w-3.5 h-3.5 ml-1 group-hover/btn:translate-x-1 transition-transform" />
-                      </motion.button>
+                      </button>
                     </div>
                   </div>
-                </motion.div>
+                </div>
               );
             })}
           </div>

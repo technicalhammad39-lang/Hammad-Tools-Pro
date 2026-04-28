@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { AnimatePresence, motion } from 'motion/react';
 import { BellRing, ExternalLink, X } from 'lucide-react';
 import { collection, doc, limit, onSnapshot, query, updateDoc, where } from 'firebase/firestore';
 import { usePathname, useRouter } from 'next/navigation';
@@ -137,55 +136,49 @@ export default function UserOrderTicker() {
 
   return (
     <div className="fixed top-[var(--user-order-offset)] left-0 right-0 z-[95] px-3 sm:px-5 lg:px-8 pointer-events-none">
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={activeNotification.id}
-          initial={{ opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -8 }}
-          transition={{ duration: 0.18 }}
-          className="pointer-events-auto mx-auto max-w-5xl border border-primary/20 bg-gradient-to-r from-[#131106] via-[#101010] to-[#131106] rounded-xl px-3 py-2.5 sm:px-3.5 sm:py-2.5 flex items-center justify-between gap-2.5 shadow-[0_10px_26px_rgba(0,0,0,0.45)]"
-        >
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 rounded-lg bg-primary/20 border border-primary/35 text-primary grid place-items-center shrink-0">
-              <BellRing className="w-3.5 h-3.5" />
+      <div
+        key={activeNotification.id}
+        className="pointer-events-auto mx-auto max-w-5xl border border-primary/20 bg-gradient-to-r from-[#131106] via-[#101010] to-[#131106] rounded-xl px-3 py-2.5 sm:px-3.5 sm:py-2.5 flex items-center justify-between gap-2.5 shadow-[0_10px_26px_rgba(0,0,0,0.45)] toast-pop-in"
+      >
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="w-8 h-8 rounded-lg bg-primary/20 border border-primary/35 text-primary grid place-items-center shrink-0">
+            <BellRing className="w-3.5 h-3.5" />
+          </div>
+          <div className="min-w-0">
+            <div className="text-[9px] font-black uppercase tracking-[0.15em] text-primary">Order Update</div>
+            <div className="text-[11px] sm:text-xs font-black text-brand-text truncate">{activeNotification.title}</div>
+            <div className="hidden sm:block text-[10px] font-semibold tracking-wide text-brand-text/55 truncate">
+              {activeNotification.body}
             </div>
-            <div className="min-w-0">
-              <div className="text-[9px] font-black uppercase tracking-[0.15em] text-primary">Order Update</div>
-              <div className="text-[11px] sm:text-xs font-black text-brand-text truncate">{activeNotification.title}</div>
-              <div className="hidden sm:block text-[10px] font-semibold tracking-wide text-brand-text/55 truncate">
-                {activeNotification.body}
-              </div>
-              <div className="text-[8px] font-black uppercase tracking-[0.14em] text-brand-text/30 mt-0.5">
-                {formatDateTime(activeNotification.createdAt)}
-              </div>
+            <div className="text-[8px] font-black uppercase tracking-[0.14em] text-brand-text/30 mt-0.5">
+              {formatDateTime(activeNotification.createdAt)}
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => {
-                void openNotification(activeNotification);
-              }}
-              disabled={busyId === activeNotification.id}
-              className="h-8 px-2.5 rounded-lg bg-primary text-black text-[9px] font-black uppercase tracking-[0.14em] border-b-2 border-secondary inline-flex items-center gap-1 disabled:opacity-60"
-            >
-              <ExternalLink className="w-3 h-3" /> Open
-            </button>
-            <button
-              onClick={() => {
-                setHiddenIds((prev) => {
-                  const next = new Set(prev);
-                  next.add(activeNotification.id);
-                  return next;
-                });
-              }}
-              className="h-8 px-2.5 rounded-lg bg-white/5 border border-white/15 text-brand-text/60 text-[9px] font-black uppercase tracking-[0.14em] inline-flex items-center gap-1 hover:text-brand-text"
-            >
-              <X className="w-3 h-3" /> Hide
-            </button>
-          </div>
-        </motion.div>
-      </AnimatePresence>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => {
+              void openNotification(activeNotification);
+            }}
+            disabled={busyId === activeNotification.id}
+            className="h-8 px-2.5 rounded-lg bg-primary text-black text-[9px] font-black uppercase tracking-[0.14em] border-b-2 border-secondary inline-flex items-center gap-1 disabled:opacity-60"
+          >
+            <ExternalLink className="w-3 h-3" /> Open
+          </button>
+          <button
+            onClick={() => {
+              setHiddenIds((prev) => {
+                const next = new Set(prev);
+                next.add(activeNotification.id);
+                return next;
+              });
+            }}
+            className="h-8 px-2.5 rounded-lg bg-white/5 border border-white/15 text-brand-text/60 text-[9px] font-black uppercase tracking-[0.14em] inline-flex items-center gap-1 hover:text-brand-text"
+          >
+            <X className="w-3 h-3" /> Hide
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

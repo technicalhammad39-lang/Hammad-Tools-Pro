@@ -4,70 +4,50 @@ import React from 'react';
 import dynamic from 'next/dynamic';
 import Hero from '@/components/Hero';
 import BackToTopButton from '@/components/BackToTopButton';
-import { motion } from 'motion/react';
 import { Globe, Award, Zap, Shield, Headphones, Layers, HelpCircle, ChevronDown } from 'lucide-react';
-import Marquee from 'react-fast-marquee';
 
 const ServicesSection = dynamic(() => import('@/components/ServicesSection'));
 const PartnerSection = dynamic(() => import('@/components/PartnerSection'));
 const Testimonials = dynamic(() => import('@/components/Testimonials'));
 
+const BRAND_LOGOS = [
+  { name: 'Netflix', color: '#E50914' },
+  { name: 'Spotify', color: '#1DB954' },
+  { name: 'Canva', color: '#00C4CC' },
+  { name: 'ChatGPT', color: '#10a37f' },
+  { name: 'YouTube', color: '#FF0000' },
+  { name: 'Disney+', color: '#006E99' },
+  { name: 'Amazon Prime', color: '#00A8E1' },
+  { name: 'Crunchyroll', color: '#F47521' },
+];
+
 export default function Home() {
-  const [enableAmbientMotion, setEnableAmbientMotion] = React.useState(false);
-
-  React.useEffect(() => {
-    const mobileQuery = window.matchMedia('(min-width: 768px)');
-    const reducedQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-
-    const syncAmbientMotion = () => {
-      setEnableAmbientMotion(mobileQuery.matches && !reducedQuery.matches);
-    };
-
-    syncAmbientMotion();
-    mobileQuery.addEventListener('change', syncAmbientMotion);
-    reducedQuery.addEventListener('change', syncAmbientMotion);
-
-    return () => {
-      mobileQuery.removeEventListener('change', syncAmbientMotion);
-      reducedQuery.removeEventListener('change', syncAmbientMotion);
-    };
-  }, []);
-
   return (
     <div className="relative bg-brand-bg">
       <BackToTopButton />
       <Hero />
       
       {/* Logo Marquee Section */}
-      <motion.section
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: '-100px' }}
+      <section
+        data-gsap-reveal="gsap"
         className="py-5 md:py-10 border-y border-white/5 bg-black/40 backdrop-blur-xl relative z-10"
       >
-        <Marquee gradient={true} gradientColor="black" gradientWidth={100} speed={40} pauseOnHover={true}>
-          {[
-            { name: 'Netflix', color: '#E50914' },
-            { name: 'Spotify', color: '#1DB954' },
-            { name: 'Canva', color: '#00C4CC' },
-            { name: 'ChatGPT', color: '#10a37f' },
-            { name: 'YouTube', color: '#FF0000' },
-            { name: 'Disney+', color: '#006E99' },
-            { name: 'Amazon Prime', color: '#00A8E1' },
-            { name: 'Crunchyroll', color: '#F47521' },
-          ].map((platform) => (
-            <div key={platform.name} className="flex items-center space-x-1.5 md:space-x-3 mx-5 md:mx-14 group">
-              <div 
-                className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full" 
-                style={{ backgroundColor: platform.color }}
-              />
-              <span className="text-base sm:text-xl md:text-2xl font-black text-brand-text/40 group-hover:text-brand-text transition-colors duration-300 uppercase italic">
-                {platform.name}
-              </span>
-            </div>
-          ))}
-        </Marquee>
-      </motion.section>
+        <div className="home-logo-marquee">
+          <div className="home-logo-marquee-track">
+            {[...BRAND_LOGOS, ...BRAND_LOGOS].map((platform, index) => (
+              <div key={`${platform.name}-${index}`} className="flex items-center space-x-1.5 md:space-x-3 mx-5 md:mx-14 group shrink-0">
+                <div
+                  className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full"
+                  style={{ backgroundColor: platform.color }}
+                />
+                <span className="text-base sm:text-xl md:text-2xl font-black text-brand-text/40 group-hover:text-brand-text transition-colors duration-300 uppercase italic whitespace-nowrap">
+                  {platform.name}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
       <ServicesSection />
       
@@ -77,14 +57,12 @@ export default function Home() {
         
         <div className="site-container">
           <div className="text-center mb-10 md:mb-20">
-            <motion.h2 
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
+            <h2
+              data-gsap-reveal="gsap"
               className="text-4xl md:text-7xl font-black mb-4 md:mb-6 text-brand-text uppercase"
             >
               <span className="font-serif italic text-white normal-case">Why</span> Choose <span className="internal-gradient">Us</span>?
-            </motion.h2>
+            </h2>
             <p className="text-brand-text/60 text-xs max-w-2xl mx-auto font-black uppercase tracking-widest">Experience the best subscription platform with premium features and elite security.</p>
           </div>
           
@@ -129,18 +107,9 @@ export default function Home() {
             ].map((feature, index) => {
               const isWhiteCard = index % 2 === 0;
               return (
-              <motion.div
+              <div
                 key={feature.title}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                whileHover={{ 
-                  y: -10, 
-                  rotateX: 10, 
-                  rotateY: -5,
-                  transition: { duration: 0.3 }
-                }}
+                data-gsap-reveal="gsap"
                 className={`rounded-2xl md:rounded-[2rem] p-4 md:p-10 border border-white/40 group relative overflow-hidden transition-all duration-500 perspective-1000 flex flex-row items-center md:items-start md:flex-col gap-4 md:gap-0 shadow-[0_20px_50px_rgba(255,214,0,0.18)] ${
                   isWhiteCard
                     ? 'bg-[linear-gradient(135deg,#FFFFFF_0%,#FFF9E6_55%,#FFFFFF_100%)]'
@@ -159,28 +128,20 @@ export default function Home() {
                   <h3 className="text-base sm:text-lg md:text-2xl font-black mb-1 md:mb-4 text-[#1A1A1A] uppercase">{feature.title}</h3>
                   <p className="text-[#1A1A1A]/70 leading-relaxed font-medium text-[11px] sm:text-xs md:text-sm">{feature.desc}</p>
                 </div>
-              </motion.div>
+              </div>
             );
             })}
           </div>
         </div>
       </section>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: '-100px' }}
-      >
+      <div data-gsap-reveal="gsap">
         <PartnerSection />
-      </motion.div>
+      </div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: '-100px' }}
-      >
+      <div data-gsap-reveal="gsap">
         <Testimonials />
-      </motion.div>
+      </div>
 
       {/* FAQ Section with Animated Icons */}
       <section className="pt-8 pb-14 md:pt-16 md:pb-28 relative overflow-hidden">
@@ -189,67 +150,27 @@ export default function Home() {
         <div className="absolute -top-20 right-[8%] w-56 h-56 rounded-full bg-primary/12 blur-[90px] -z-10 pointer-events-none" />
 
         {/* Large Background Question Marks */}
-        <motion.div 
-          animate={enableAmbientMotion ? {
-            y: [0, -60, 0],
-            rotate: [15, 25, 15],
-            scale: [1, 1.1, 1]
-          } : undefined}
-          transition={enableAmbientMotion ? { duration: 8, repeat: Infinity, ease: "easeInOut" } : undefined}
-          className="absolute -left-32 top-0 opacity-[0.05] -z-10 pointer-events-none"
-          style={{ willChange: 'transform' }}
-        >
+        <div className="absolute -left-32 top-0 opacity-[0.05] -z-10 pointer-events-none faq-ambient-large-a">
           <HelpCircle className="w-[800px] h-[800px] text-primary" strokeWidth={0.5} />
-        </motion.div>
+        </div>
         
-        <motion.div 
-          animate={enableAmbientMotion ? {
-            y: [0, 60, 0],
-            rotate: [-15, -25, -15],
-            scale: [1, 1.1, 1]
-          } : undefined}
-          transition={enableAmbientMotion ? { duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 } : undefined}
-          className="absolute -right-32 bottom-0 opacity-[0.05] -z-10 pointer-events-none"
-          style={{ willChange: 'transform' }}
-        >
+        <div className="absolute -right-32 bottom-0 opacity-[0.05] -z-10 pointer-events-none faq-ambient-large-b">
           <HelpCircle className="w-[800px] h-[800px] text-secondary" strokeWidth={0.5} />
-        </motion.div>
+        </div>
 
         {/* Extra floating icons for detail */}
-        {enableAmbientMotion ? (
-          <>
-            <motion.div 
-              animate={{ 
-                y: [0, -30, 0],
-                x: [0, 20, 0],
-                rotate: [0, 360]
-              }}
-              transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-              className="absolute left-[10%] bottom-[20%] opacity-[0.1] -z-10"
-              style={{ willChange: 'transform' }}
-            >
-              <HelpCircle className="w-24 h-24 text-primary" strokeWidth={1} />
-            </motion.div>
+        <>
+          <div className="absolute left-[10%] bottom-[20%] opacity-[0.1] -z-10 faq-ambient-small-a">
+            <HelpCircle className="w-24 h-24 text-primary" strokeWidth={1} />
+          </div>
 
-            <motion.div 
-              animate={{ 
-                y: [0, 30, 0],
-                x: [0, -20, 0],
-                rotate: [360, 0]
-              }}
-              transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-              className="absolute right-[10%] top-[20%] opacity-[0.1] -z-10"
-              style={{ willChange: 'transform' }}
-            >
-              <HelpCircle className="w-32 h-32 text-secondary" strokeWidth={1} />
-            </motion.div>
-          </>
-        ) : null}
+          <div className="absolute right-[10%] top-[20%] opacity-[0.1] -z-10 faq-ambient-small-b">
+            <HelpCircle className="w-32 h-32 text-secondary" strokeWidth={1} />
+          </div>
+        </>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-100px' }}
+        <div
+          data-gsap-reveal="gsap"
           className="site-container"
         >
           <div className="max-w-3xl mx-auto">
@@ -279,7 +200,7 @@ export default function Home() {
               ))}
             </div>
           </div>
-        </motion.div>
+        </div>
       </section>
     </div>
   );

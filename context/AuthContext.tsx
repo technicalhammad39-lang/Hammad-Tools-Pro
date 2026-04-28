@@ -5,6 +5,8 @@ import {
   onAuthStateChanged,
   signInWithPopup,
   signOut,
+  type Auth as FirebaseAuth,
+  type GoogleAuthProvider,
   User as FirebaseUser,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -12,8 +14,14 @@ import {
   updateProfile,
 } from 'firebase/auth';
 import { doc, getDoc, onSnapshot, serverTimestamp, setDoc } from 'firebase/firestore';
-import { auth, db, googleProvider } from '@/firebase';
+import { db } from '@/firebase';
 import { getSafeAuthErrorMessage } from '@/lib/auth-errors';
+import {
+  getCustomPasswordResetUrl,
+  getFirebasePublicEnvErrorMessage,
+  hasFirebasePublicEnv,
+  logMissingFirebasePublicEnv,
+} from '@/lib/firebase-public-env';
 
 const ADMIN_EMAIL = 'technicalhammad39@gmail.com';
 
@@ -47,6 +55,28 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+let authClientPromise:
+  | Promise<{
+      auth: FirebaseAuth;
+      googleProvider: GoogleAuthProvider;
+    }>
+  | null = null;
+
+async function getAuthClient() {
+  if (!hasFirebasePublicEnv) {
+    logMissingFirebasePublicEnv('auth-context');
+    throw new Error(getFirebasePublicEnvErrorMessage());
+  }
+
+  if (!authClientPromise) {
+    authClientPromise = import('@/firebase-auth').then((module) => ({
+      auth: module.auth,
+      googleProvider: module.googleProvider,
+    }));
+  }
+  return authClientPromise;
+}
 
 function getRoleForEmail(email: string | null | undefined): UserRole {
   if (email && email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
@@ -156,63 +186,135 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let unsubscribeAuth: (() => void) | null = null;
     let unsubscribeProfile: (() => void) | null = null;
+    let timeoutHandle: number | null = null;
+    let removeInteractionBootstrap: (() => void) | null = null;
+    let bootstrapped = false;
 
-    const unsubscribeAuth = onAuthStateChanged(auth, (nextUser) => {
-      setUser(nextUser);
+    const path = typeof window !== 'undefined' ? window.location.pathname : '/';
+    const requiresImmediateAuthBootstrap =
+      path.startsWith('/dashboard') ||
+      path.startsWith('/admin') ||
+      path.startsWith('/checkout') ||
+      path.startsWith('/profile') ||
+      path.startsWith('/login') ||
+      path.startsWith('/signup') ||
+      path.startsWith('/forgot-password');
 
-      if (unsubscribeProfile) {
-        unsubscribeProfile();
-        unsubscribeProfile = null;
+    const bootstrapAuth = async () => {
+      if (bootstrapped) {
+        return;
       }
-
-      if (!nextUser) {
-        setProfile(null);
+      bootstrapped = true;
+      let auth: FirebaseAuth;
+      try {
+        const client = await getAuthClient();
+        auth = client.auth;
+      } catch (error) {
+        console.error('Failed to initialize Firebase auth client:', error);
         setLoading(false);
         return;
       }
 
-      setLoading(true);
-      setProfile(profileFallback(nextUser));
+      unsubscribeAuth = onAuthStateChanged(auth, (nextUser) => {
+        setUser(nextUser);
 
-      void ensureUserProfile(nextUser).catch((error) => {
-        console.error('Failed to ensure user profile:', error);
-      });
-
-      const profileRef = doc(db, 'users', nextUser.uid);
-      unsubscribeProfile = onSnapshot(
-        profileRef,
-        (snapshot) => {
-          const nextProfile = snapshot.exists()
-            ? (snapshot.data() as UserProfile)
-            : profileFallback(nextUser);
-
-          if (nextProfile?.banned) {
-            setProfile(nextProfile);
-            setLoading(false);
-            void signOut(auth).catch((error) => {
-              console.error('Failed to sign out banned user:', error);
-            });
-            return;
-          }
-
-          if (snapshot.exists()) {
-            setProfile(nextProfile);
-          } else {
-            setProfile(nextProfile);
-          }
-          setLoading(false);
-        },
-        (error) => {
-          console.error('Profile listener failed:', error);
-          setProfile(profileFallback(nextUser));
-          setLoading(false);
+        if (unsubscribeProfile) {
+          unsubscribeProfile();
+          unsubscribeProfile = null;
         }
-      );
-    });
+
+        if (!nextUser) {
+          setProfile(null);
+          setLoading(false);
+          return;
+        }
+
+        setLoading(true);
+        setProfile(profileFallback(nextUser));
+
+        void ensureUserProfile(nextUser).catch((error) => {
+          console.error('Failed to ensure user profile:', error);
+        });
+
+        const profileRef = doc(db, 'users', nextUser.uid);
+        unsubscribeProfile = onSnapshot(
+          profileRef,
+          (snapshot) => {
+            const nextProfile = snapshot.exists()
+              ? (snapshot.data() as UserProfile)
+              : profileFallback(nextUser);
+
+            if (nextProfile?.banned) {
+              setProfile(nextProfile);
+              setLoading(false);
+              void signOut(auth).catch((error) => {
+                console.error('Failed to sign out banned user:', error);
+              });
+              return;
+            }
+
+            if (snapshot.exists()) {
+              setProfile(nextProfile);
+            } else {
+              setProfile(nextProfile);
+            }
+            setLoading(false);
+          },
+          (error) => {
+            console.error('Profile listener failed:', error);
+            setProfile(profileFallback(nextUser));
+            setLoading(false);
+          }
+        );
+      });
+    };
+
+    if (requiresImmediateAuthBootstrap) {
+      bootstrapAuth();
+    } else if (typeof window !== 'undefined') {
+      window.setTimeout(() => {
+        setLoading(false);
+      }, 0);
+
+      const triggerBootstrap = () => {
+        if (removeInteractionBootstrap) {
+          removeInteractionBootstrap();
+          removeInteractionBootstrap = null;
+        }
+        if (timeoutHandle !== null) {
+          window.clearTimeout(timeoutHandle);
+          timeoutHandle = null;
+        }
+        void bootstrapAuth();
+      };
+
+      const onPointerDown = () => triggerBootstrap();
+      const onKeyDown = () => triggerBootstrap();
+      window.addEventListener('pointerdown', onPointerDown, { once: true, passive: true });
+      window.addEventListener('keydown', onKeyDown, { once: true });
+      removeInteractionBootstrap = () => {
+        window.removeEventListener('pointerdown', onPointerDown);
+        window.removeEventListener('keydown', onKeyDown);
+      };
+
+      timeoutHandle = window.setTimeout(() => {
+        triggerBootstrap();
+      }, 15000);
+    }
 
     return () => {
-      unsubscribeAuth();
+      if (timeoutHandle !== null) {
+        window.clearTimeout(timeoutHandle);
+      }
+      if (removeInteractionBootstrap) {
+        removeInteractionBootstrap();
+      }
+
+      if (unsubscribeAuth) {
+        unsubscribeAuth();
+      }
       if (unsubscribeProfile) {
         unsubscribeProfile();
       }
@@ -221,6 +323,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async () => {
     try {
+      const { auth, googleProvider } = await getAuthClient();
       await signInWithPopup(auth, googleProvider);
     } catch (error) {
       console.error('Login failed:', error);
@@ -230,6 +333,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const loginWithEmail = async (email: string, pass: string) => {
     try {
+      const { auth } = await getAuthClient();
       await signInWithEmailAndPassword(auth, email, pass);
     } catch (error) {
       console.error('Email login failed:', error);
@@ -239,6 +343,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signupWithEmail = async (email: string, pass: string, name: string) => {
     try {
+      const { auth } = await getAuthClient();
       const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
       await updateProfile(userCredential.user, { displayName: name.trim() });
       await ensureUserProfile(userCredential.user, name.trim()).catch((profileError) => {
@@ -253,15 +358,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const requestPasswordReset = async (email: string) => {
     try {
-      await sendPasswordResetEmail(auth, email);
+      if (!hasFirebasePublicEnv) {
+        logMissingFirebasePublicEnv('password-reset');
+        throw new Error(getFirebasePublicEnvErrorMessage());
+      }
+
+      const { auth } = await getAuthClient();
+      const customResetUrl = getCustomPasswordResetUrl();
+      if (customResetUrl) {
+        await sendPasswordResetEmail(auth, email, {
+          url: customResetUrl,
+          handleCodeInApp: false,
+        });
+      } else {
+        await sendPasswordResetEmail(auth, email);
+      }
     } catch (error) {
       console.error('Password reset request failed:', error);
+      if (error instanceof Error && error.message === getFirebasePublicEnvErrorMessage()) {
+        throw error;
+      }
       throw new Error(getSafeAuthErrorMessage(error, 'password_reset'));
     }
   };
 
   const logout = async () => {
     try {
+      const { auth } = await getAuthClient();
       await signOut(auth);
     } catch (error) {
       console.error('Logout failed:', error);

@@ -18,7 +18,7 @@ function sanitizeNextPath(nextPath: string | null) {
 }
 
 const GENERIC_RESET_FEEDBACK =
-  'If this email is registered, a password reset link will be sent shortly.';
+  'If this email exists, a password reset link has been sent.';
 
 export default function ForgotPasswordClient() {
   const params = useSearchParams();
@@ -27,6 +27,7 @@ export default function ForgotPasswordClient() {
   const [email, setEmail] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState('');
+  const [feedbackType, setFeedbackType] = useState<'success' | 'error' | null>(null);
 
   const nextPath = useMemo(() => sanitizeNextPath(params.get('next')), [params]);
   const backToLoginHref =
@@ -39,21 +40,40 @@ export default function ForgotPasswordClient() {
 
     if (!trimmedEmail || !emailPattern.test(trimmedEmail)) {
       setFeedback('Please enter a valid email address.');
+      setFeedbackType('error');
       return;
     }
 
     setSubmitting(true);
     setFeedback('');
+    setFeedbackType(null);
 
     try {
       await requestPasswordReset(trimmedEmail);
+      setFeedback(GENERIC_RESET_FEEDBACK);
+      setFeedbackType('success');
+      toast.success('Request submitted', GENERIC_RESET_FEEDBACK);
     } catch (error) {
       console.error('Forgot password request failed:', error);
-    } finally {
-      setFeedback(GENERIC_RESET_FEEDBACK);
-      toast.success('Request submitted', GENERIC_RESET_FEEDBACK);
-      setSubmitting(false);
+      const message = error instanceof Error ? error.message : 'Unable to send reset email right now.';
+      const normalized = message.toLowerCase();
+
+      if (normalized.includes('valid email')) {
+        setFeedback('Please enter a valid email address.');
+        setFeedbackType('error');
+        toast.error('Invalid email', 'Please enter a valid email address.');
+      } else if (normalized.includes('temporarily unavailable')) {
+        setFeedback('Password reset is temporarily unavailable. Please try again shortly.');
+        setFeedbackType('error');
+        toast.error('Request failed', 'Password reset is temporarily unavailable right now.');
+      } else {
+        setFeedback(GENERIC_RESET_FEEDBACK);
+        setFeedbackType('success');
+        toast.success('Request submitted', GENERIC_RESET_FEEDBACK);
+      }
     }
+
+    setSubmitting(false);
   }
 
   return (
@@ -80,7 +100,13 @@ export default function ForgotPasswordClient() {
           </div>
 
           {feedback ? (
-            <div className="rounded-xl border border-primary/25 bg-primary/10 px-3 py-2.5 text-xs text-brand-text/85">
+            <div
+              className={`rounded-xl px-3 py-2.5 text-xs ${
+                feedbackType === 'error'
+                  ? 'border border-accent/30 bg-accent/10 text-accent'
+                  : 'border border-primary/25 bg-primary/10 text-brand-text/85'
+              }`}
+            >
               {feedback}
             </div>
           ) : null}

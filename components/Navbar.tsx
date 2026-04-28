@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { motion, AnimatePresence } from 'motion/react';
 import { Menu, X, User, ShoppingBag } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
@@ -129,47 +128,41 @@ const Navbar = () => {
       </div>
 
       {/* Mobile Nav */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="xl:hidden bg-gradient-to-b from-[#0A0A0A] to-[#121212] border-t border-white/5 overflow-hidden shadow-2xl"
-          >
-            <div className="px-4 pt-2 pb-10 space-y-1">
-              {mobileNavLinks.map((link) => (
-                <Link
-                  key={link.name}
-                  href={link.href}
-                  onClick={() => setIsOpen(false)}
-                  className={`block px-3 py-4 text-lg font-black uppercase tracking-[0.16em] ${pathname === link.href ? 'text-primary' : 'text-brand-text/40'}`}
-                >
-                  {link.name}
+      <div
+        data-open={isOpen ? 'true' : 'false'}
+        className="mobile-nav-panel xl:hidden bg-gradient-to-b from-[#0A0A0A] to-[#121212] border-t border-white/5 overflow-hidden shadow-2xl"
+      >
+        <div className="px-4 pt-2 pb-10 space-y-1">
+          {mobileNavLinks.map((link) => (
+            <Link
+              key={link.name}
+              href={link.href}
+              onClick={() => setIsOpen(false)}
+              className={`block px-3 py-4 text-lg font-black uppercase tracking-[0.16em] ${pathname === link.href ? 'text-primary' : 'text-brand-text/40'}`}
+            >
+              {link.name}
+            </Link>
+          ))}
+          <div className="pt-6 border-t border-white/5 mx-3">
+            {user ? (
+              <div className="flex items-center justify-between">
+                <Link href="/dashboard" onClick={() => setIsOpen(false)} className="flex items-center space-x-3 text-brand-text/40 font-black uppercase tracking-widest text-sm">
+                  <User className="w-5 h-5" />
+                  <span>My Profile</span>
                 </Link>
-              ))}
-              <div className="pt-6 border-t border-white/5 mx-3">
-                {user ? (
-                  <div className="flex items-center justify-between">
-                    <Link href="/dashboard" onClick={() => setIsOpen(false)} className="flex items-center space-x-3 text-brand-text/40 font-black uppercase tracking-widest text-sm">
-                      <User className="w-5 h-5" />
-                      <span>My Profile</span>
-                    </Link>
-                  </div>
-                ) : (
-                  <Link
-                    href="/login"
-                    onClick={() => setIsOpen(false)}
-                    className="w-full bg-primary text-brand-bg py-5 rounded-xl font-black uppercase tracking-widest text-sm border-b-4 border-[#FF8C2A] shadow-lg shadow-primary/10 inline-flex items-center justify-center"
-                  >
-                    Login
-                  </Link>
-                )}
               </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            ) : (
+              <Link
+                href="/login"
+                onClick={() => setIsOpen(false)}
+                className="w-full bg-primary text-brand-bg py-5 rounded-xl font-black uppercase tracking-widest text-sm border-b-4 border-[#FF8C2A] shadow-lg shadow-primary/10 inline-flex items-center justify-center"
+              >
+                Login
+              </Link>
+            )}
+          </div>
+        </div>
+      </div>
     </nav>
   );
 };

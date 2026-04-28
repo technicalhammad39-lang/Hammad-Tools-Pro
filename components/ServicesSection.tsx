@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
 import {
   ShoppingCart,
   ChevronRight,
@@ -9,7 +8,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
-import { collection, onSnapshot, orderBy, query } from 'firebase/firestore';
+import { collection, getDocs, orderBy, query } from 'firebase/firestore';
 import { db } from '@/firebase';
 import { usePathname } from 'next/navigation';
 import type { Category, ProductItem } from '@/lib/types/domain';
@@ -46,37 +45,42 @@ const ServicesSection = () => {
   const pathname = usePathname();
 
   useEffect(() => {
-    const unsubscribeServices = onSnapshot(
-      query(collection(db, 'services'), orderBy('sortOrder', 'asc')),
-      (snapshot) => {
-        const docs = snapshot.docs
+    let mounted = true;
+
+    async function loadCatalog() {
+      try {
+        const [servicesSnapshot, categoriesSnapshot] = await Promise.all([
+          getDocs(query(collection(db, 'services'), orderBy('sortOrder', 'asc'))),
+          getDocs(query(collection(db, 'categories'), orderBy('sortOrder', 'asc'))),
+        ]);
+
+        if (!mounted) {
+          return;
+        }
+
+        const serviceDocs = servicesSnapshot.docs
           .map((doc) => ({ id: doc.id, ...(doc.data() as Omit<ProductItem, 'id'>) }))
           .filter((service) => (service.type || 'tools') === 'tools' && service.active !== false);
-        setServices(docs);
-        setLoading(false);
-      },
-      (error) => {
-        console.error('Failed to load tools:', error);
-        setLoading(false);
-      }
-    );
 
-    const unsubscribeCategories = onSnapshot(
-      query(collection(db, 'categories'), orderBy('sortOrder', 'asc')),
-      (snapshot) => {
-        const docs = snapshot.docs
+        const categoryDocs = categoriesSnapshot.docs
           .map((doc) => ({ id: doc.id, ...(doc.data() as Omit<Category, 'id'>) }))
           .filter((category) => category.active !== false && (category.type === 'tools' || category.type === 'both'));
-        setCategories(docs);
-      },
-      (error) => {
-        console.error('Failed to load categories:', error);
+
+        setServices(serviceDocs);
+        setCategories(categoryDocs);
+      } catch (error) {
+        console.error('Failed to load tools catalog:', error);
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
       }
-    );
+    }
+
+    void loadCatalog();
 
     return () => {
-      unsubscribeServices();
-      unsubscribeCategories();
+      mounted = false;
     };
   }, []);
 
@@ -122,15 +126,13 @@ const ServicesSection = () => {
       <div className="site-container">
         <div className="flex flex-col items-center text-center mb-6 md:mb-12 gap-3 md:gap-6">
           <div className="max-w-4xl flex flex-col items-center">
-            <motion.h2
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-100px' }}
+            <h2
+              data-gsap-reveal="gsap"
               className="text-[32px] sm:text-5xl md:text-6xl lg:text-7xl font-black mb-4 md:mb-6 text-brand-text uppercase leading-none text-center md:whitespace-nowrap"
             >
               <span className="font-serif italic text-white normal-case">Premium </span>
               <span className="internal-gradient inline">Subscriptions</span>
-            </motion.h2>
+            </h2>
               <p className="text-brand-text/50 text-xs md:text-lg font-medium max-w-2xl mx-auto text-center mt-1 md:mt-2">
               Deploy high-performance digital subscriptions, exclusive premium software, and elite tools with instant automated execution.
             </p>
@@ -139,24 +141,20 @@ const ServicesSection = () => {
           <div className="w-full md:w-auto flex justify-center md:justify-end">
             {pathname !== '/tools' && (
               <Link href="/tools" className="w-full md:w-auto">
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                <button
                   className="w-full md:w-auto bg-white/5 hover:bg-white/10 px-10 py-5 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] border border-white/10 transition-all flex items-center justify-center gap-3"
                 >
                   <span>Full Catalog</span>
                   <ChevronRight className="w-4 h-4" />
-                </motion.button>
+                </button>
               </Link>
             )}
           </div>
         </div>
 
         {pathname === '/tools' && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-100px' }}
+          <div
+            data-gsap-reveal="gsap"
             className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6 mb-6 md:mb-16 items-center"
           >
             <div className="lg:col-span-4 relative group">
@@ -193,32 +191,28 @@ const ServicesSection = () => {
                 </button>
               ))}
             </div>
-          </motion.div>
+          </div>
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12">
-          <AnimatePresence mode="popLayout">
-            {displayServices.map((service, index) => {
-              const title = getTitle(service);
-              const price = getPrice(service);
-              const originalPrice = getOriginalPrice(service);
-              const image = resolveImageSource(service, {
-                mediaPaths: ['imageMedia'],
-                stringPaths: ['image', 'thumbnail'],
-                placeholder: '/services-card.webp',
-              });
-              const categoryName = service.categoryName || service.category || 'General';
+          {displayServices.map((service, index) => {
+            const title = getTitle(service);
+            const price = getPrice(service);
+            const originalPrice = getOriginalPrice(service);
+            const image = resolveImageSource(service, {
+              mediaPaths: ['imageMedia'],
+              stringPaths: ['image', 'thumbnail'],
+              placeholder: '/services-card.webp',
+            });
+            const categoryName = service.categoryName || service.category || 'General';
 
-              return (
-                <motion.div
-                  key={service.id}
-                  layout
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{ duration: 0.4, delay: index * 0.05 }}
-                  className="group relative flex flex-col h-full bg-brand-soft/20 backdrop-blur-3xl rounded-[1.25rem] md:rounded-[2.4rem] overflow-hidden border border-white/5 transition-all duration-700 hover:border-primary/30 hover:shadow-2xl hover:shadow-primary/5"
-                >
+            return (
+              <div
+                key={service.id}
+                data-gsap-reveal="gsap"
+                className="group relative flex flex-col h-full bg-brand-soft/20 backdrop-blur-3xl rounded-[1.25rem] md:rounded-[2.4rem] overflow-hidden border border-white/5 transition-all duration-700 hover:border-primary/30 hover:shadow-2xl hover:shadow-primary/5"
+                style={{ transitionDelay: `${Math.min(index * 25, 240)}ms` }}
+              >
                   <Link
                     href={`/tools/${getSlug(service)}`}
                     className="absolute inset-0 z-10"
@@ -269,9 +263,7 @@ const ServicesSection = () => {
                       </div>
 
                       <div className="flex gap-3 relative z-30">
-                        <motion.button
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
+                        <button
                           onClick={(event) => {
                             event.preventDefault();
                             event.stopPropagation();
@@ -287,32 +279,28 @@ const ServicesSection = () => {
                         >
                           <ShoppingCart className="w-4 h-4 text-brand-text/20 group-hover/btn:text-primary transition-colors" />
                           <span className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-text/40 group-hover/btn:text-brand-text">Cart</span>
-                        </motion.button>
+                        </button>
 
                         <Link href={`/tools/${getSlug(service)}`} className="flex-[2]">
-                          <motion.button
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
+                          <button
                             className="w-full bg-primary text-black py-3 md:py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] flex items-center justify-center gap-2 md:gap-3 border-b-4 border-secondary shadow-xl shadow-primary/10 group/order"
                           >
                             <span>Buy Now</span>
-                          </motion.button>
+                          </button>
                         </Link>
                       </div>
                     </div>
                   </div>
 
                   <div className="absolute inset-[1px] rounded-[2rem] md:rounded-[3rem] border border-white/5 pointer-events-none -z-10" />
-                </motion.div>
-              );
-            })}
-          </AnimatePresence>
+              </div>
+            );
+          })}
         </div>
 
         {filteredServices.length === 0 && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
+          <div
+            data-gsap-reveal="gsap"
             className="text-center py-40 flex flex-col items-center"
           >
             <div className="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center mb-8 border border-white/5">
@@ -320,7 +308,7 @@ const ServicesSection = () => {
             </div>
             <h3 className="text-2xl font-black uppercase text-brand-text mb-4">No Products Found</h3>
             <p className="text-brand-text/40 font-medium">Try adjusting your search query or category filters.</p>
-          </motion.div>
+          </div>
         )}
       </div>
     </section>

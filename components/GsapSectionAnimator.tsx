@@ -99,6 +99,7 @@ export default function GsapSectionAnimator() {
       gsap.set(targets, { willChange: 'transform, opacity' });
 
       targets.forEach((target, index) => {
+        const immediate = target.getAttribute('data-gsap-immediate') === 'true';
         gsap.fromTo(
           target,
           { autoAlpha: 0, y: 28 },
@@ -109,12 +110,16 @@ export default function GsapSectionAnimator() {
             ease: 'power2.out',
             delay: Math.min(index * 0.03, 0.2),
             clearProps: 'willChange',
-            scrollTrigger: {
-              trigger: target,
-              start: 'top 88%',
-              once: true,
-              fastScrollEnd: true,
-            },
+            ...(immediate
+              ? {}
+              : {
+                  scrollTrigger: {
+                    trigger: target,
+                    start: 'top 88%',
+                    once: true,
+                    fastScrollEnd: true,
+                  },
+                }),
           }
         );
       });

@@ -1,4 +1,4 @@
-import { auth } from '@/firebase';
+import { auth } from '@/firebase-auth';
 import { onAuthStateChanged, type User } from 'firebase/auth';
 import { normalizeImageUrl } from '@/lib/image-display';
 

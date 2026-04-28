@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { motion } from 'motion/react';
 import {
   Shield,
   Award,
@@ -327,9 +326,9 @@ export default function ServiceDetailClient({ service, loading }: { service: Ser
 
           {/* Left Column: Visuals & Meta (5 cols) */}
           <div className="lg:col-span-5 space-y-4 md:space-y-8">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
+            <div
+              data-gsap-reveal="gsap"
+              data-gsap-immediate="true"
               className="relative aspect-video md:aspect-square rounded-3xl md:rounded-[3.5rem] overflow-hidden border border-white/10 shadow-3xl group max-h-[40vh] md:max-h-none"
             >
               <UploadedImage
@@ -346,7 +345,7 @@ export default function ServiceDetailClient({ service, loading }: { service: Ser
                   {service.category}
                 </span>
               </div>
-            </motion.div>
+            </div>
 
             {/* Quick Badges */}
             <div className="grid grid-cols-2 gap-2.5 md:gap-4">
@@ -407,21 +406,20 @@ export default function ServiceDetailClient({ service, loading }: { service: Ser
           {/* Right Column: Pricing & Purchase (7 cols) */}
           <div className="lg:col-span-7 space-y-5 md:space-y-8">
             <div>
-              <motion.h1
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
+              <h1
+                data-gsap-reveal="gsap"
+                data-gsap-immediate="true"
                 className="text-[3rem] sm:text-5xl md:text-8xl font-black mb-3 md:mb-6 text-brand-text leading-[0.94] whitespace-pre-wrap break-words"
               >
                 {service.name}
-              </motion.h1>
-              <motion.p
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
+              </h1>
+              <p
+                data-gsap-reveal="gsap"
+                data-gsap-immediate="true"
                 className="text-brand-text/50 text-base md:text-lg font-medium leading-relaxed max-w-2xl"
               >
                 {service.longDescription || service.description}
-              </motion.p>
+              </p>
             </div>
 
             {/* Plan Selection */}
@@ -516,26 +514,20 @@ export default function ServiceDetailClient({ service, loading }: { service: Ser
                        <Plus className="w-4 h-4" />
                      </button>
                    </div>
-                   <motion.button
-                     whileHover={{ scale: 1.02 }}
-                     whileTap={{ scale: 0.98 }}
+                   <button
                      onClick={handleOrder}
-                     className="flex-1 w-full h-14 md:h-auto bg-primary text-brand-bg px-5 md:px-10 py-4 md:py-6 rounded-2xl md:rounded-[2rem] font-black uppercase tracking-[0.2em] text-[10px] md:text-sm flex items-center justify-center gap-2.5 md:gap-4 border-b-[6px] md:border-b-8 border-[#FF8C2A] shadow-2xl shadow-primary/20 hover:shadow-primary/40 active:border-b-0 active:translate-y-2 transition-all group"
+                     className="flex-1 w-full h-14 md:h-auto bg-primary text-brand-bg px-5 md:px-10 py-4 md:py-6 rounded-2xl md:rounded-[2rem] font-black uppercase tracking-[0.2em] text-[10px] md:text-sm flex items-center justify-center gap-2.5 md:gap-4 border-b-[6px] md:border-b-8 border-[#FF8C2A] shadow-2xl shadow-primary/20 hover:shadow-primary/40 hover:scale-[1.02] active:scale-[0.98] active:border-b-0 active:translate-y-2 transition-all group"
                    >
                      <span>Buy Now (Rs {totalPrice})</span>
                      <MessageCircle className="w-4 h-4 md:w-6 md:h-6 transition-transform group-hover:rotate-12" />
-                   </motion.button>
+                   </button>
                  </div>
                </div>
             </div>
 
             <div className="mt-1 md:mt-2">
               <div className="relative overflow-hidden rounded-lg md:rounded-2xl border border-emerald-500/20 bg-emerald-500/10 py-2 md:py-3 px-2.5 md:px-3">
-                <motion.div
-                  animate={{ x: ['0%', '-50%'] }}
-                  transition={{ duration: 13, repeat: Infinity, ease: 'linear' }}
-                  className="flex w-max items-center gap-10 whitespace-nowrap pr-10"
-                >
+                <div className="flex w-max items-center gap-10 whitespace-nowrap pr-10 service-secure-marquee">
                   <div className="inline-flex items-center gap-2.5">
                     <Shield className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                     <p className="text-[9px] md:text-[10px] font-black text-emerald-400 uppercase tracking-[0.12em]">
@@ -548,7 +540,7 @@ export default function ServiceDetailClient({ service, loading }: { service: Ser
                       Secure checkout with payment proof, admin verification, and realtime order tracking.
                     </p>
                   </div>
-                </motion.div>
+                </div>
               </div>
             </div>
           </div>
@@ -605,7 +597,7 @@ export default function ServiceDetailClient({ service, loading }: { service: Ser
                     const maskedIdentity = review.userEmailMasked || '';
                     const displayName = review.userName || 'Customer';
                     return (
-                      <motion.div
+                      <div
                         key={review.id}
                         className="p-3.5 md:p-5 rounded-xl md:rounded-2xl border border-white/5 bg-white/[0.02] hover:border-primary/20 transition-all shadow-xl"
                       >
@@ -646,7 +638,7 @@ export default function ServiceDetailClient({ service, loading }: { service: Ser
                             ) : null}
                           </div>
                         </div>
-                      </motion.div>
+                      </div>
                     );
                   })}
                 </div>
@@ -723,10 +715,8 @@ export default function ServiceDetailClient({ service, loading }: { service: Ser
 
       {isReviewModalOpen ? (
         <div className="lg:hidden fixed inset-0 z-[80] bg-black/70 backdrop-blur-sm p-3 flex items-end" data-lenis-prevent>
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="w-full max-h-[88vh] overflow-y-auto no-scrollbar bg-[#171717] border border-white/10 rounded-[1.5rem] shadow-2xl"
+          <div
+            className="w-full max-h-[88vh] overflow-y-auto no-scrollbar bg-[#171717] border border-white/10 rounded-[1.5rem] shadow-2xl review-sheet-enter"
             data-lenis-prevent
           >
             <div className="px-4 py-4 border-b border-white/10 flex items-center justify-between">
@@ -797,7 +787,7 @@ export default function ServiceDetailClient({ service, loading }: { service: Ser
                 <MessageCircle className="w-4 h-4" />
               </button>
             </form>
-          </motion.div>
+          </div>
         </div>
       ) : null}
     </div>

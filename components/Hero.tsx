@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { motion } from 'motion/react';
 import { ArrowRight, Star, MousePointer2, Quote } from 'lucide-react';
 import Link from 'next/link';
 import UploadedImage from '@/components/UploadedImage';
@@ -27,7 +26,19 @@ const Hero = () => {
   React.useEffect(() => {
     const mediaQuery = window.matchMedia('(min-width: 1024px)');
     const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const sync = () => setShowDesktopVideo(mediaQuery.matches);
+    const sync = () => {
+      const navigatorInfo = navigator as Navigator & {
+        connection?: {
+          saveData?: boolean;
+          effectiveType?: string;
+        };
+      };
+      const saveData = navigatorInfo.connection?.saveData === true;
+      const effectiveType = navigatorInfo.connection?.effectiveType || '';
+      const isVerySlowNetwork = effectiveType === 'slow-2g' || effectiveType === '2g';
+      const hasEnoughCpu = (navigator.hardwareConcurrency || 4) >= 6;
+      setShowDesktopVideo(mediaQuery.matches && hasEnoughCpu && !saveData && !isVerySlowNetwork);
+    };
     const syncReducedMotion = () => setReduceMotion(reducedMotionQuery.matches);
     sync();
     syncReducedMotion();
@@ -97,10 +108,9 @@ const Hero = () => {
 
       <div className="site-container-wide w-full relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.14fr)_minmax(0,0.86fr)] gap-7 sm:gap-9 md:gap-10 lg:gap-9 xl:gap-11 items-center">
-          <motion.div
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
+          <div
+            data-gsap-reveal="gsap"
+            data-gsap-immediate="true"
             className="relative z-20 md:w-full md:max-w-4xl md:mx-auto md:flex md:flex-col md:items-center md:text-center lg:items-start lg:text-left lg:mx-0 lg:max-w-none"
           >
             <h1 className="mb-4 md:mb-6 text-brand-text text-left md:text-center lg:text-left">
@@ -125,10 +135,9 @@ const Hero = () => {
               </span>
             </h1>
 
-            <motion.p
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4, duration: 0.45 }}
+            <p
+              data-gsap-reveal="gsap"
+              data-gsap-immediate="true"
               className="mb-2 md:mb-3 text-left md:text-center lg:text-left"
             >
               <span className="block md:hidden text-white text-[clamp(1.45rem,6.6vw,2.05rem)] sm:text-[clamp(1.6rem,6vw,2.2rem)] font-black leading-[1.1]">
@@ -137,50 +146,43 @@ const Hero = () => {
               <span className="hidden md:block text-white text-[10px] sm:text-[11px] md:text-xs font-black uppercase tracking-[0.18em]">
                 One Trusted Hub For Premium Digital Access
               </span>
-            </motion.p>
+            </p>
             
-            <motion.p 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5, duration: 0.5 }}
+            <p
+              data-gsap-reveal="gsap"
+              data-gsap-immediate="true"
               className="text-[12px] sm:text-[13px] md:text-2xl text-gray-300/90 md:text-brand-text/60 mt-1.5 md:mt-3 mb-5 md:mb-6 max-w-md sm:max-w-lg md:max-w-3xl leading-[1.55] md:leading-relaxed font-medium relative z-20 text-left md:text-center lg:text-left mx-0 md:mx-auto lg:mx-0"
             >
               Access Netflix, ChatGPT Plus, Canva Pro, and 50+ other premium content access at unbeatable prices. Fast, secure, and reliable.
-            </motion.p>
+            </p>
 
             <div className="w-full md:w-auto">
               <div className="grid w-full grid-cols-2 gap-2.5 md:gap-3 lg:flex lg:w-auto lg:flex-nowrap lg:items-center lg:justify-start">
                 <Link href="/tools" className="col-span-1 w-full lg:w-auto">
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="w-full h-12 md:h-14 lg:min-w-[182px] xl:min-w-[196px] bg-primary text-brand-bg px-3 md:px-6 rounded-xl font-black flex items-center justify-center gap-2 transition-all border-b-4 border-[#FF8C2A] shadow-xl shadow-primary/10"
+                  <button
+                    className="w-full h-12 md:h-14 lg:min-w-[182px] xl:min-w-[196px] bg-primary text-brand-bg px-3 md:px-6 rounded-xl font-black flex items-center justify-center gap-2 transition-all border-b-4 border-[#FF8C2A] shadow-xl shadow-primary/10 hover:scale-[1.02] active:scale-[0.98]"
                   >
                     <span className="text-[10px] md:text-xs uppercase tracking-[0.1em]">Explore Tools</span>
                     <ArrowRight className="w-4 h-4 -rotate-45" />
-                  </motion.button>
+                  </button>
                 </Link>
 
                 <Link href="/services" className="col-span-1 w-full lg:w-auto">
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="w-full h-12 md:h-14 lg:min-w-[182px] xl:min-w-[196px] bg-[linear-gradient(135deg,#2F2F2F_0%,#242424_58%,#1D1D1D_100%)] text-brand-text px-3 md:px-6 rounded-xl font-black flex items-center justify-center gap-2 transition-all border border-[#656565]/45 shadow-xl shadow-black/35"
+                  <button
+                    className="w-full h-12 md:h-14 lg:min-w-[182px] xl:min-w-[196px] bg-[linear-gradient(135deg,#2F2F2F_0%,#242424_58%,#1D1D1D_100%)] text-brand-text px-3 md:px-6 rounded-xl font-black flex items-center justify-center gap-2 transition-all border border-[#656565]/45 shadow-xl shadow-black/35 hover:scale-[1.02] active:scale-[0.98]"
                   >
                     <span className="text-[10px] md:text-xs uppercase tracking-[0.1em]">Services</span>
                     <ArrowRight className="w-4 h-4 -rotate-45 text-brand-text/80" />
-                  </motion.button>
+                  </button>
                 </Link>
 
                 <Link href="/about" className="col-span-2 block w-full lg:col-span-1 lg:w-auto">
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="w-full h-12 md:h-14 lg:min-w-[196px] xl:min-w-[210px] glass hover:bg-white/10 text-white px-4 md:px-8 rounded-xl font-black flex items-center justify-center gap-2 transition-all border border-white/20"
+                  <button
+                    className="w-full h-12 md:h-14 lg:min-w-[196px] xl:min-w-[210px] glass hover:bg-white/10 text-white px-4 md:px-8 rounded-xl font-black flex items-center justify-center gap-2 transition-all border border-white/20 hover:scale-[1.02] active:scale-[0.98]"
                   >
                     <span className="text-[10px] md:text-xs uppercase tracking-[0.1em]">How It Works</span>
                     <ArrowRight className="w-4 h-4 -rotate-45 text-white/85" />
-                  </motion.button>
+                  </button>
                 </Link>
               </div>
             </div>
@@ -205,20 +207,18 @@ const Hero = () => {
                 <p className="text-[10px] md:text-base font-medium text-gray-300 whitespace-nowrap uppercase tracking-wider">Trusted by 10k+ users</p>
               </div>
             </div>
-          </motion.div>
+          </div>
 
           {/* Floating UI Elements - Overlapping Tilted Review Cards */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 1, delay: 0.3 }}
+          <div
+            data-gsap-reveal="gsap"
+            data-gsap-immediate="true"
             className="relative z-10 hidden lg:flex justify-center items-center h-[530px]"
           >
             {/* Review Card 1 (Darker Yellow) */}
-            <motion.div
-              animate={{ y: [0, -15, 0], rotate: [-5, -6, -5] }}
-              transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute top-20 right-0 z-20 bg-gradient-to-br from-[#5C5000] to-[#121212] p-8 rounded-[2rem] w-80 border border-primary/20 shadow-2xl"
+            <div
+              className="absolute top-20 right-0 z-20 bg-gradient-to-br from-[#5C5000] to-[#121212] p-8 rounded-[2rem] w-80 border border-primary/20 shadow-2xl hero-floating-card-a"
+              style={{ transform: 'translateY(0) rotate(-5deg)' }}
             >
               <Quote className="text-primary w-10 h-10 mb-4 opacity-30" />
               <p className="text-lg font-black mb-6 leading-tight text-brand-text">
@@ -238,13 +238,12 @@ const Hero = () => {
                   <p className="text-xs text-brand-text/40">Verified Customer</p>
                 </div>
               </div>
-            </motion.div>
+            </div>
  
             {/* Review Card 2 */}
-            <motion.div
-              animate={{ y: [0, 15, 0], rotate: [5, 6, 5] }}
-              transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-              className="absolute bottom-20 left-0 z-10 bg-gradient-to-bl from-[#FF8C2A]/20 to-[#1A1A1A] p-8 rounded-[2rem] w-80 border border-secondary/10 shadow-2xl"
+            <div
+              className="absolute bottom-20 left-0 z-10 bg-gradient-to-bl from-[#FF8C2A]/20 to-[#1A1A1A] p-8 rounded-[2rem] w-80 border border-secondary/10 shadow-2xl hero-floating-card-b"
+              style={{ transform: 'translateY(0) rotate(5deg)' }}
             >
               <Quote className="text-secondary w-10 h-10 mb-4 opacity-30" />
               <p className="text-lg font-black mb-6 leading-tight text-brand-text">
@@ -264,23 +263,16 @@ const Hero = () => {
                   <p className="text-xs text-brand-text/40">Pro Member</p>
                 </div>
               </div>
-            </motion.div>
+            </div>
 
             {/* Sleek Cursor Icon */}
-            <motion.div
-              animate={{ 
-                x: [-80, 80, -80],
-                y: [-40, 40, -40]
-              }}
-              transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute z-30 pointer-events-none"
-            >
+            <div className="absolute z-30 pointer-events-none hero-floating-cursor">
               <MousePointer2 className="w-12 h-12 text-primary fill-primary/20" />
-            </motion.div>
+            </div>
 
             {/* Decorative Sharp Glow */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 border border-primary/10 rounded-full -z-10" />
-          </motion.div>
+          </div>
         </div>
       </div>
     </section>
