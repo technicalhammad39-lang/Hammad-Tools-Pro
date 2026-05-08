@@ -13,7 +13,7 @@ type GiveawayDocument = {
   status?: string;
 };
 
-export const revalidate = 120;
+export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(): Promise<Metadata> {
   let featured: GiveawayDocument | null = null;

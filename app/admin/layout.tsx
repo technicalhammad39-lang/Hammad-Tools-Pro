@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { AnimatePresence } from 'motion/react';
 import NotificationBell from '@/components/NotificationBell';
@@ -36,6 +36,7 @@ type AdminSearchResult = { id: string; label: string; sub: string; href: string 
 const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   const { profile, isAdmin, isStaff, loading, logout } = useAuth();
   const pathname = usePathname();
+  const router = useRouter();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
   const [searchTerm, setSearchTerm] = React.useState('');
   const [searchOpen, setSearchOpen] = React.useState(false);
@@ -154,7 +155,10 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
           id: `tool-${docId}`,
           label: title,
           sub: type === 'services' ? 'Service' : 'Tool',
-          href: type === 'services' ? '/admin/agency-services' : '/admin/tools',
+          href:
+            type === 'services'
+              ? `/admin/agency-services?edit=${encodeURIComponent(docId)}`
+              : `/admin/tools?edit=${encodeURIComponent(docId)}`,
         };
       });
 
@@ -175,7 +179,12 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
           return null;
         }
 
-        return { id: `blog-${docId}`, label: title, sub: 'Blog', href: '/admin/blog' };
+        return {
+          id: `blog-${docId}`,
+          label: title,
+          sub: 'Blog',
+          href: `/admin/blog?edit=${encodeURIComponent(docId)}`,
+        };
       });
 
       watchCollection('giveaways', 'giveaways', 80, (docId, data) => {
@@ -185,7 +194,12 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
           return null;
         }
 
-        return { id: `giveaway-${docId}`, label: title, sub: 'Giveaway', href: '/admin/giveaways' };
+        return {
+          id: `giveaway-${docId}`,
+          label: title,
+          sub: 'Giveaway',
+          href: `/admin/giveaways?edit=${encodeURIComponent(docId)}`,
+        };
       });
 
       watchCollection('users', 'users', 80, (docId, data) => {
@@ -211,7 +225,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
       return;
     }
 
-    window.location.href = searchResults[0].href;
+    router.push(searchResults[0].href);
   };
 
   if (loading) {

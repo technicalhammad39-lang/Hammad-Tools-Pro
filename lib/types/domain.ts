@@ -11,6 +11,7 @@ export type UploadFolderType =
 export interface StoredFileMetadata {
   mediaId: string;
   fileUrl: string;
+  publicPath?: string;
   storagePath: string;
   fileName: string;
   mimeType: string;

@@ -11,7 +11,7 @@ export const metadata: Metadata = createPageMetadata({
   keywords: ['hammad tools blog', 'subscription guides', 'digital tool tutorials', 'productivity tips'],
 });
 
-export const revalidate = 120;
+export const dynamic = 'force-dynamic';
 
 export default async function BlogsPage() {
   const posts = await getPublishedBlogPosts();

@@ -1,190 +1,299 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { Bold, Italic, Link as LinkIcon, Type, Underline } from 'lucide-react';
-import { normalizeRichTextValue } from '@/lib/rich-text';
+import { normalizeBlogEditorUrl, sanitizeBlogHref } from '@/lib/blog-links';
+import {
+  getRichTextLength,
+  normalizeRichTextValue,
+} from '@/lib/rich-text';
 
 type RichTextEditorProps = {
   value: string;
   onChange: (value: string) => void;
-  textareaRef?: React.RefObject<HTMLTextAreaElement | null>;
   placeholder?: string;
   className?: string;
   rows?: number;
   maxLength?: number;
 };
 
+const EMPTY_EDITOR_HTML = '<p><br /></p>';
+
 const colorOptions = [
-  { label: 'White', value: 'white', className: 'bg-white' },
-  { label: 'Yellow', value: 'yellow', className: 'bg-primary' },
-  { label: 'Grey', value: 'grey', className: 'bg-[#8E8E8E]' },
+  { label: 'White', value: '#F5F5F5', swatchClassName: 'bg-white' },
+  { label: 'Yellow', value: '#FFD600', swatchClassName: 'bg-primary' },
+  { label: 'Grey', value: '#8E8E8E', swatchClassName: 'bg-[#8E8E8E]' },
 ] as const;
 
 const sizeOptions = [
-  { label: 'Small', value: 'small' },
-  { label: 'Medium', value: 'medium' },
-  { label: 'Large', value: 'large' },
+  { label: 'S', value: '2', title: 'Small text' },
+  { label: 'M', value: '3', title: 'Medium text' },
+  { label: 'L', value: '5', title: 'Large text' },
 ] as const;
 
-function getSelectionBounds(element: HTMLTextAreaElement, fallbackLength: number) {
-  return {
-    start: element.selectionStart ?? fallbackLength,
-    end: element.selectionEnd ?? fallbackLength,
-  };
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function selectionBelongsToEditor(editor: HTMLDivElement) {
+  const selection = window.getSelection();
+  if (!selection || selection.rangeCount === 0) {
+    return false;
+  }
+  const range = selection.getRangeAt(0);
+  return editor.contains(range.commonAncestorContainer);
+}
+
+function moveCaretToEnd(editor: HTMLDivElement) {
+  const selection = window.getSelection();
+  const range = document.createRange();
+  range.selectNodeContents(editor);
+  range.collapse(false);
+  selection?.removeAllRanges();
+  selection?.addRange(range);
 }
 
 export default function RichTextEditor({
   value,
   onChange,
-  textareaRef,
   placeholder,
   className = '',
-  rows = 8,
   maxLength,
 }: RichTextEditorProps) {
-  const internalRef = useRef<HTMLTextAreaElement | null>(null);
-  const ref = textareaRef || internalRef;
-  const [selectedSize, setSelectedSize] = useState<'small' | 'medium' | 'large'>('medium');
+  const editorRef = useRef<HTMLDivElement | null>(null);
+  const lastSentValueRef = useRef('');
+  const normalizedValue = useMemo(() => normalizeRichTextValue(value), [value]);
+  const plainLength = useMemo(() => getRichTextLength(normalizedValue), [normalizedValue]);
+  const isEmpty = plainLength === 0;
 
-  function updateValue(nextValue: string, cursorPosition?: number) {
-    onChange(nextValue);
-    if (typeof cursorPosition === 'number') {
-      window.requestAnimationFrame(() => {
-        const element = ref.current;
-        if (!element) {
-          return;
-        }
-        element.focus();
-        element.setSelectionRange(cursorPosition, cursorPosition);
-      });
-    }
-  }
-
-  function wrapSelection(before: string, after = before, fallback = 'text') {
-    const element = ref.current;
-    if (!element) {
-      updateValue(`${value}${before}${fallback}${after}`);
+  useEffect(() => {
+    const editor = editorRef.current;
+    if (!editor) {
       return;
     }
 
-    const { start, end } = getSelectionBounds(element, value.length);
-    const selectedText = value.slice(start, end) || fallback;
-    const next = `${value.slice(0, start)}${before}${selectedText}${after}${value.slice(end)}`;
-    updateValue(next, start + before.length + selectedText.length + after.length);
-  }
-
-  function insertLink() {
-    const element = ref.current;
-    const { start, end } = element ? getSelectionBounds(element, value.length) : { start: value.length, end: value.length };
-    const selectedText = value.slice(start, end).trim() || 'link text';
-    const url = window.prompt('Enter URL', 'https://');
-    if (!url || !url.trim()) {
-      return;
-    }
-    const normalizedUrl = /^https?:\/\//i.test(url.trim()) || url.trim().startsWith('/') ? url.trim() : `https://${url.trim()}`;
-    const markup = `[${selectedText}](${normalizedUrl})`;
-    const next = `${value.slice(0, start)}${markup}${value.slice(end)}`;
-    updateValue(next, start + markup.length);
-  }
-
-  function handlePaste(event: React.ClipboardEvent<HTMLTextAreaElement>) {
-    const text = event.clipboardData.getData('text');
-    if (!text || !/(https?:\/\/|www\.)/i.test(text)) {
-      return;
+    const currentNormalized = normalizeRichTextValue(editor.innerHTML);
+    if (currentNormalized !== normalizedValue) {
+      editor.innerHTML = normalizedValue || EMPTY_EDITOR_HTML;
     }
 
+    lastSentValueRef.current = normalizedValue;
+  }, [normalizedValue]);
+
+  function focusEditor() {
+    const editor = editorRef.current;
+    if (!editor) {
+      return null;
+    }
+
+    editor.focus();
+    if (!selectionBelongsToEditor(editor)) {
+      moveCaretToEnd(editor);
+    }
+    return editor;
+  }
+
+  function emitChange(options?: { normalizeDom?: boolean; keepFocus?: boolean }) {
+    const editor = editorRef.current;
+    if (!editor) {
+      return;
+    }
+
+    const normalized = normalizeRichTextValue(editor.innerHTML);
+    const nextLength = getRichTextLength(normalized);
+    if (typeof maxLength === 'number' && nextLength > maxLength) {
+      editor.innerHTML = lastSentValueRef.current || EMPTY_EDITOR_HTML;
+      if (options?.keepFocus) {
+        focusEditor();
+      }
+      return;
+    }
+
+    if (options?.normalizeDom) {
+      editor.innerHTML = normalized || EMPTY_EDITOR_HTML;
+      if (options.keepFocus) {
+        focusEditor();
+      }
+    }
+
+    lastSentValueRef.current = normalized;
+    onChange(normalized);
+  }
+
+  function runCommand(command: string, valueToApply?: string) {
+    const editor = focusEditor();
+    if (!editor) {
+      return;
+    }
+
+    document.execCommand('styleWithCSS', false, 'true');
+    document.execCommand(command, false, valueToApply);
+    emitChange({ keepFocus: true });
+  }
+
+  function insertLinkFromPrompt() {
+    const editor = focusEditor();
+    if (!editor) {
+      return;
+    }
+
+    const selection = window.getSelection();
+    const selectedText = selection?.toString().trim() || '';
+    const rawUrl = window.prompt('Enter URL', 'https://');
+    if (!rawUrl || !rawUrl.trim()) {
+      return;
+    }
+
+    const href = sanitizeBlogHref(normalizeBlogEditorUrl(rawUrl));
+    if (!href || href === '#') {
+      return;
+    }
+
+    const label = selectedText || window.prompt('Link text', href)?.trim() || href;
+    const html = `<a href="${escapeHtml(href)}">${escapeHtml(label)}</a>`;
+    document.execCommand('insertHTML', false, html);
+    emitChange({ keepFocus: true });
+  }
+
+  function handlePaste(event: React.ClipboardEvent<HTMLDivElement>) {
     event.preventDefault();
-    const element = event.currentTarget;
-    const { start, end } = getSelectionBounds(element, value.length);
-    const linked = normalizeRichTextValue(text);
-    const next = `${value.slice(0, start)}${linked}${value.slice(end)}`;
-    updateValue(next, start + linked.length);
+    const pastedText = event.clipboardData.getData('text/plain');
+    if (!pastedText.trim()) {
+      return;
+    }
+
+    const editor = focusEditor();
+    if (!editor) {
+      return;
+    }
+
+    const selectionText = window.getSelection()?.toString().trim() || '';
+    const trimmed = pastedText.trim();
+    if (/^(https?:\/\/|www\.)/i.test(trimmed) && selectionText) {
+      const href = sanitizeBlogHref(normalizeBlogEditorUrl(trimmed));
+      if (href && href !== '#') {
+        document.execCommand(
+          'insertHTML',
+          false,
+          `<a href="${escapeHtml(href)}">${escapeHtml(selectionText)}</a>`
+        );
+        emitChange({ keepFocus: true });
+        return;
+      }
+    }
+
+    document.execCommand('insertHTML', false, normalizeRichTextValue(pastedText) || escapeHtml(pastedText));
+    emitChange({ keepFocus: true });
   }
 
   return (
-    <div className="rounded-xl border border-white/10 bg-white/[0.03] overflow-hidden">
+    <div className="overflow-hidden rounded-xl border border-white/10 bg-white/[0.03]">
       <div className="flex flex-wrap items-center gap-1.5 border-b border-white/10 bg-black/25 px-2.5 py-2">
         <button
           type="button"
-          onClick={() => wrapSelection('**', '**', 'bold text')}
-          className="h-8 w-8 rounded-lg border border-white/10 bg-white/[0.03] text-brand-text/70 hover:text-primary hover:border-primary/35 grid place-items-center"
+          onMouseDown={(event) => {
+            event.preventDefault();
+            runCommand('bold');
+          }}
+          className="grid h-8 w-8 place-items-center rounded-lg border border-white/10 bg-white/[0.03] text-brand-text/70 hover:border-primary/35 hover:text-primary"
           title="Bold"
         >
-          <Bold className="w-4 h-4" />
+          <Bold className="h-4 w-4" />
         </button>
         <button
           type="button"
-          onClick={() => wrapSelection('*', '*', 'italic text')}
-          className="h-8 w-8 rounded-lg border border-white/10 bg-white/[0.03] text-brand-text/70 hover:text-primary hover:border-primary/35 grid place-items-center"
+          onMouseDown={(event) => {
+            event.preventDefault();
+            runCommand('italic');
+          }}
+          className="grid h-8 w-8 place-items-center rounded-lg border border-white/10 bg-white/[0.03] text-brand-text/70 hover:border-primary/35 hover:text-primary"
           title="Italic"
         >
-          <Italic className="w-4 h-4" />
+          <Italic className="h-4 w-4" />
         </button>
         <button
           type="button"
-          onClick={() => wrapSelection('<u>', '</u>', 'underlined text')}
-          className="h-8 w-8 rounded-lg border border-white/10 bg-white/[0.03] text-brand-text/70 hover:text-primary hover:border-primary/35 grid place-items-center"
+          onMouseDown={(event) => {
+            event.preventDefault();
+            runCommand('underline');
+          }}
+          className="grid h-8 w-8 place-items-center rounded-lg border border-white/10 bg-white/[0.03] text-brand-text/70 hover:border-primary/35 hover:text-primary"
           title="Underline"
         >
-          <Underline className="w-4 h-4" />
+          <Underline className="h-4 w-4" />
         </button>
         <button
           type="button"
-          onClick={insertLink}
-          className="h-8 w-8 rounded-lg border border-white/10 bg-white/[0.03] text-brand-text/70 hover:text-primary hover:border-primary/35 grid place-items-center"
+          onMouseDown={(event) => {
+            event.preventDefault();
+            insertLinkFromPrompt();
+          }}
+          className="grid h-8 w-8 place-items-center rounded-lg border border-white/10 bg-white/[0.03] text-brand-text/70 hover:border-primary/35 hover:text-primary"
           title="Insert link"
         >
-          <LinkIcon className="w-4 h-4" />
+          <LinkIcon className="h-4 w-4" />
         </button>
 
         <div className="mx-1 h-6 w-px bg-white/10" />
 
         <div className="inline-flex items-center gap-1 rounded-lg border border-white/10 bg-white/[0.03] px-2 py-1">
-          <Type className="w-3.5 h-3.5 text-brand-text/45" />
-          <select
-            value={selectedSize}
-            onChange={(event) => {
-              const nextSize = event.target.value as 'small' | 'medium' | 'large';
-              setSelectedSize(nextSize);
-              wrapSelection(`<span data-rich-size="${nextSize}">`, '</span>', 'sized text');
-            }}
-            className="bg-transparent text-[10px] font-black uppercase tracking-widest text-brand-text focus:outline-none"
-            title="Font size"
-          >
-            {sizeOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+          <Type className="h-3.5 w-3.5 text-brand-text/45" />
+          {sizeOptions.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              onMouseDown={(event) => {
+                event.preventDefault();
+                runCommand('fontSize', option.value);
+              }}
+              className="rounded-md px-2 py-1 text-[10px] font-black uppercase tracking-widest text-brand-text/75 hover:bg-white/10 hover:text-primary"
+              title={option.title}
+            >
+              {option.label}
+            </button>
+          ))}
         </div>
 
         <div className="inline-flex items-center gap-1">
           {colorOptions.map((option) => (
             <button
-              key={option.value}
+              key={option.label}
               type="button"
-              onClick={() => wrapSelection(`<span data-rich-color="${option.value}">`, '</span>', `${option.label} text`)}
-              className="h-8 w-8 rounded-lg border border-white/10 bg-white/[0.03] grid place-items-center hover:border-primary/35"
+              onMouseDown={(event) => {
+                event.preventDefault();
+                runCommand('foreColor', option.value);
+              }}
+              className="grid h-8 w-8 place-items-center rounded-lg border border-white/10 bg-white/[0.03] hover:border-primary/35"
               title={`${option.label} text`}
             >
-              <span className={`h-3.5 w-3.5 rounded-full border border-black/25 ${option.className}`} />
+              <span className={`h-3.5 w-3.5 rounded-full border border-black/25 ${option.swatchClassName}`} />
             </button>
           ))}
         </div>
       </div>
 
-      <textarea
-        ref={ref}
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        onBlur={() => onChange(normalizeRichTextValue(value))}
+      <div
+        ref={editorRef}
+        contentEditable
+        suppressContentEditableWarning
+        data-placeholder={placeholder || 'Start writing...'}
+        data-empty={isEmpty ? 'true' : 'false'}
+        onInput={() => emitChange()}
+        onBlur={() => emitChange({ normalizeDom: true })}
         onPaste={handlePaste}
-        placeholder={placeholder}
-        rows={rows}
-        maxLength={maxLength}
-        className={`w-full bg-transparent px-4 py-3 text-sm leading-7 text-brand-text focus:outline-none ${className}`}
+        className={`rich-text-editor-surface min-h-36 w-full bg-transparent px-4 py-3 text-sm leading-7 text-brand-text focus:outline-none ${className}`}
       />
+
+      {typeof maxLength === 'number' ? (
+        <div className="border-t border-white/10 px-4 py-2 text-right text-[10px] font-black uppercase tracking-widest text-brand-text/35">
+          {plainLength}/{maxLength}
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { resolveImageSource } from '@/lib/image-display';
+import { richTextToPlainText } from '@/lib/rich-text';
 import { toSlugFromTitle } from '@/lib/seo';
 import type { StoredFileMetadata } from '@/lib/types/domain';
 
@@ -99,18 +100,6 @@ function extractMedia(input: unknown, fieldPaths: string[]) {
   return null;
 }
 
-function stripMarkdown(value: string) {
-  return value
-    .replace(/```[\s\S]*?```/g, ' ')
-    .replace(/`[^`]*`/g, ' ')
-    .replace(/!\[[^\]]*\]\([^)]+\)/g, ' ')
-    .replace(/\[[^\]]+\]\(([^)]+)\)/g, '$1')
-    .replace(/^#{1,6}\s+/gm, '')
-    .replace(/[*_~>#-]/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
 function countWords(value: string) {
   if (!value) {
     return 0;
@@ -144,7 +133,7 @@ export function buildBlogShortDescription(input: {
     return explicit;
   }
 
-  const fromContent = stripMarkdown(readString(input.content));
+  const fromContent = richTextToPlainText(readString(input.content));
   if (fromContent) {
     return fromContent.slice(0, 200);
   }
@@ -231,7 +220,7 @@ export function formatBlogPublishDate(value: Date | null) {
 }
 
 export function getBlogReadTimeMinutes(content: string, wordsPerMinute = DEFAULT_READING_WORDS_PER_MINUTE) {
-  const cleanContent = stripMarkdown(readString(content));
+  const cleanContent = richTextToPlainText(readString(content));
   const totalWords = countWords(cleanContent);
   const safeWpm = Math.max(80, Number(wordsPerMinute) || DEFAULT_READING_WORDS_PER_MINUTE);
   return Math.max(1, Math.ceil(totalWords / safeWpm));

@@ -75,7 +75,7 @@ export async function generateMetadata({
   };
 }
 
-export const revalidate = 120;
+export const dynamic = 'force-dynamic';
 
 function richSpanClassName(props: Record<string, unknown>) {
   const color = String(props['data-rich-color'] || '').toLowerCase();

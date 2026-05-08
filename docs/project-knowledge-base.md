@@ -1,79 +1,133 @@
 ﻿# Hammad Tools Project Knowledge Base
 
-Last updated: 2026-05-07
+Last updated: 2026-05-08 (full code scan pass)
 
-## 1) Project Purpose and Scope
+## 1) Project Intent
 
 Hammad Tools is a production marketplace for:
-- Digital tools/subscriptions (primary)
-- Agency services (secondary catalog)
-- Checkout + manual payment proof workflow
-- Admin operations (catalog, orders, users, coupons, notifications, settings)
-- User dashboard (orders, order chat, profile, notifications)
+- premium digital tools/subscriptions
+- agency services
+- manual checkout/payment proof flow
+- admin operations (catalog, orders, users, coupons, notifications, settings)
+- user dashboard (orders, messages, profile, notifications)
 
-Primary stack:
-- Next.js App Router (v15)
-- React 19 + TypeScript
-- Tailwind CSS
-- Firebase Auth + Firestore + Firebase Admin + FCM
-- Hostinger/local filesystem upload system through API routes
+## 2) Stack and Runtime
 
-## 2) High-Level Architecture
+- Next.js App Router (`next@15.5.15`)
+- React 19 (`react@19.2.1`)
+- TypeScript 5
+- Tailwind CSS 4
+- Firebase client: Auth + Firestore + FCM web
+- Firebase Admin server-side: Auth + Firestore + Messaging
+- Hostinger-compatible local filesystem upload system via API routes
 
-### Frontend
-- App Router pages in `app/`
-- Shared UI components in `components/`
-- Client state/providers in `context/`
+Build/runtime:
+- `npm run build` -> `next build && node scripts/prepare-standalone.mjs`
+- `npm run start` -> `node .next/standalone/server.js`
+- `next.config.ts` uses `output: 'standalone'`
+- `vercel.json` has a daily cron for entitlement expiry
 
-### Backend (inside Next app)
-- Secure API routes in `app/api/*`
-- Server-side Firebase Admin helpers in `lib/server/*`
-- Firestore security rules in `firestore.rules`
+## 3) Repository Map
 
-### Storage
-- Public assets: `public/uploads/*`
-- Protected assets: `storage/uploads/*`
-- File metadata registry: Firestore `media_files` collection
+Primary directories:
+- `app/`: pages, layouts, API routes
+- `app/admin/`: admin UI modules
+- `app/api/`: backend endpoints
+- `components/`: shared UI blocks
+- `context/`: app providers (`Auth`, `Cart`, `Settings`)
+- `lib/`: client/shared helpers
+- `lib/server/`: server-only helpers (auth/admin/upload/notifications)
+- `docs/`: project docs
 
-### Deploy/runtime
-- `next.config.ts` uses `output: "standalone"`
-- Post-build asset copier: `scripts/prepare-standalone.mjs`
-- Production start command: `node .next/standalone/server.js`
+Important root files:
+- `firestore.rules`
+- `next.config.ts`
+- `.env.example`
+- `scripts/prepare-standalone.mjs`
 
-## 3) Directory Map (Important Parts)
+## 4) App Bootstrap (Global Providers + Components)
 
-- `app/`: routes + layouts + API handlers
-- `app/admin/`: admin panel modules
-- `app/dashboard/`: user dashboard
-- `app/checkout/`: order placement flow
-- `app/tools/`: tool listing + detail pages
-- `app/services/`: agency services listing + detail pages
-- `app/giveaway/`: social-style giveaway feed
-- `app/api/`: server APIs (auth/profile, uploads, admin users, orders messages, newsletter, cron, push token)
-
-- `components/`: reusable UI (Navbar, Footer, NotificationBell, MediaLibraryModal, tickers, etc.)
-- `context/`: AuthContext, CartContext, SettingsContext
-- `lib/`: utility modules (SEO, coupons, image normalization, order helpers, storage client utils)
-- `lib/server/`: admin/auth/upload/notification server utilities
-- `docs/`: project docs (this file + media docs)
-
-## 4) Core Runtime and Bootstrap
-
-Root layout (`app/layout.tsx`) wires:
+`app/layout.tsx` wraps the app with:
 - `AuthProvider`
 - `CartProvider`
 - `SettingsProvider`
 - `ToastProvider`
-- `LenisProvider`, `GsapSectionAnimator`, `ChunkLoadRecovery`
-- Global UI: `GlobalPromoTicker`, `Navbar`, `UserOrderTicker`, `CartDrawer`, `Footer`
+- `LenisProvider`
+- `GsapSectionAnimator`
+- `ChunkLoadRecovery`
+- `PushNotificationBootstrap`
+- `GlobalPromoTicker`
+- `Navbar`
+- `UserOrderTicker`
+- `EngagementPrompt`
+- `CartDrawer`
+- `Footer`
 
-This means most pages automatically get auth/cart/settings/toast and global ticker behavior.
+Result: most pages inherit auth/cart/settings state, promo ticker, order ticker, cart drawer, and engagement/push behavior.
 
-## 5) Data Model and Collections
+## 5) Route Inventory (Pages)
 
-Typed models are centralized in `lib/types/domain.ts`.
+Public routes:
+- `/`
+- `/about`
+- `/tools`
+- `/tools/[slug]`
+- `/services`
+- `/services/[slug]`
+- `/blogs`
+- `/blogs/[slug]`
+- `/blog` (legacy redirect page)
+- `/blog/[slug]` (legacy redirect page)
+- `/giveaway`
+- `/contact`
+- `/privacy`
+- `/terms`
+- `/checkout`
+- `/login`
+- `/signup`
+- `/forgot-password`
+- `/profile` (redirects users to dashboard)
 
-Primary Firestore collections used by app:
+User route:
+- `/dashboard`
+
+Admin routes:
+- `/admin`
+- `/admin/tools`
+- `/admin/agency-services`
+- `/admin/giveaways`
+- `/admin/blog`
+- `/admin/orders`
+- `/admin/categories`
+- `/admin/payment-methods`
+- `/admin/notifications`
+- `/admin/subscribers`
+- `/admin/coupons`
+- `/admin/users`
+- `/admin/socials`
+- `/admin/settings`
+
+## 6) API Inventory
+
+- `POST /api/auth/profile`
+- `POST /api/newsletter/subscribe`
+- `POST /api/push/register`
+- `POST /api/upload`
+- `GET /api/upload/library`
+- `GET /api/upload/[mediaId]`
+- `DELETE /api/upload/[mediaId]`
+- `GET /api/upload/diagnostics`
+- `POST /api/orders/[orderId]/messages`
+- `POST /api/admin/users`
+- `PATCH /api/admin/users/[userId]`
+- `DELETE /api/admin/users/[userId]`
+- `GET /api/admin/subscribers`
+- `GET /api/cron/expire-entitlements`
+- `POST /api/cron/expire-entitlements`
+
+## 7) Firestore Collections (Observed)
+
+Core collections:
 - `users`
 - `services`
 - `agency_services`
@@ -89,363 +143,381 @@ Primary Firestore collections used by app:
 - `push_tokens`
 - `notification_dispatches`
 - `blogPosts`
-- `giveaways` (+ subcollections `comments`, `entries`)
+- `giveaways`
 - `user_entries`
 - `service_activations`
 - `admin_audit_logs`
 
-### Order status semantics
-Canonical order statuses in code:
-- `pending`
-- `approved`
-- `rejected`
-- legacy-compatible: `pending_verification`, `needs_info`, `completed`
+Nested:
+- `giveaways/{id}/comments`
+- `giveaways/{id}/entries`
 
-Normalization helper (`lib/order-system.ts`):
-- `pending_verification` and `needs_info` map to `pending`
-- `completed` maps to `approved`
+Type contracts are in `lib/types/domain.ts`.
 
-## 6) Auth, Roles, Access Control
+## 8) Auth and Role Model
 
-### Client-side auth (`context/AuthContext.tsx`)
-- Supports Google popup login and email/password login/signup.
-- Ensures profile exists in `users/{uid}`.
-- If client profile write fails (permissions), falls back to `/api/auth/profile`.
-- Banned users are forced to sign out.
+Main auth:
+- Client auth and session state in `context/AuthContext.tsx`
+- Server auth in `lib/server/auth.ts`
+- Profile sync fallback endpoint: `POST /api/auth/profile`
 
-### Server-side auth (`lib/server/auth.ts`)
-- `requireAuth`: verifies Firebase ID token (header bearer, optional query token for protected file streaming).
-- `requireAdmin`: admin email OR profile role `admin`.
-- `requireStaff`: admin email OR profile role `admin|manager`.
+Role sources:
+- User doc role (`users/{uid}.role`)
+- Hardcoded super-admin email: `technicalhammad39@gmail.com`
 
-### Important role nuance
-- `isStaffRole()` helper includes `staff` string in some places.
-- But `requireStaff()` checks only `admin|manager`.
-- Firestore rules also treat `staff`/`Staff` as manager-level in rule helper.
-- Keep role values consistent when changing auth model.
+Role consistency notes (important):
+- `requireStaff()` currently accepts only `admin` or `manager`.
+- `isStaffRole()` helper (used elsewhere) accepts `admin`, `manager`, `staff`.
+- Firestore rules treat `staff`/`Staff` as manager-level.
+- Auth profile normalization maps `staff` -> `manager` in some code paths.
+- Client `AuthContext.isStaff` includes admin/manager only (plus super-admin email).
 
-### Hardcoded super-admin email
-Used in multiple places:
-- `technicalhammad39@gmail.com`
+Risk: mixed `staff` vs `manager` assumptions can create behavior mismatches across client, API, and rules.
 
-## 7) Firestore Security Rules Summary
+## 9) Firestore Rules Summary
 
-Defined in `firestore.rules`.
+From `firestore.rules`:
+- public read for `services`, `categories`, `agency_services`, published blog posts, giveaways
+- `newsletter_subscribers` client writes blocked (`allow write: if false`)
+- `orders`:
+  - users can create own pending orders
+  - staff can update/delete
+  - final status lock enforced by rule helpers (`approved`/`rejected` cannot be flipped)
+- `notifications`:
+  - recipients can mark own notifications as `read`
+  - staff can create/delete
+- `service_reviews`:
+  - restricted create shape and rating validation
 
-Highlights:
-- Public read: `services`, `categories`, `agency_services`, public blog posts, giveaways.
-- Staff/admin writes for most admin-managed collections.
-- `orders`: users create own pending orders; staff can update (with final-status lock logic).
-- `notifications`: recipients can mark own notifications read; staff can create/delete.
-- `newsletter_subscribers`: client writes blocked (`allow write: if false`), server API uses Admin SDK.
-- `service_reviews`: controlled allowed fields and rating validation.
-
-## 8) Upload and Media System (Critical)
-
-Upload subsystem is in:
-- `lib/server/local-upload.ts`
-- `app/api/upload/*`
-- `lib/storage-utils.ts`
-
-### Supported folders
-- Public: `tools`, `services`, `blogs`, `partners`, `profiles`
-- Protected: `payment-proofs`, `chat-attachments`
-
-### Validation and policy
-- Per-folder extension/mime/type/max-size checks
-- Staff-only for some folders (`tools`, `services`, `blogs`, `partners`)
-- Strict path normalization to prevent traversal
-- File metadata saved to `media_files`
-
-### API behavior
-- `POST /api/upload`: upload + optional replace old media + relation tagging
-- `GET /api/upload/library`: filtered media listing with auth and ownership checks
-- `GET /api/upload/:mediaId`: file streaming (token required for protected files)
-- `DELETE /api/upload/:mediaId`: owner/staff delete record + file
-- `GET /api/upload/diagnostics`: admin-only filesystem and Firebase diagnostics
-
-### Protected media access
-- Protected files can be accessed with:
-  - `Authorization: Bearer <idToken>`
-  - OR `?token=<idToken>` query
-
-## 9) Checkout and Order Lifecycle
+## 10) Checkout and Order Lifecycle
 
 Main file: `app/checkout/page.tsx`
 
 Flow:
-1. Auth required (`/login?next=...` redirect otherwise)
-2. Load cart/single item and active `payment_methods`
-3. Optional coupon validation against `coupons`
-4. Optional payment proof upload (`folder=payment-proofs`)
-5. Create order doc in `orders/{orderId}` with:
-- customer + delivery fields
-- items and item summary
-- pricing (subtotal, discount, total)
-- coupon snapshot
-- payment method snapshot
-- payment proof snapshot
-- status `pending`
-- ticker state `new`
+1. Require login
+2. Resolve items (single product or cart)
+3. Load active payment methods
+4. Optional coupon validation
+5. Optional payment proof upload (`payment-proofs`)
+6. Create `orders/{orderId}` with:
+   - full customer/contact fields
+   - line items and item summary
+   - subtotal/discount/total
+   - coupon snapshot
+   - payment method snapshot
+   - payment proof snapshot
+   - `status: 'pending'`
+   - `tickerState: 'new'`
 
 Manual chat mode:
-- Payment method with `paymentType=manual_chat` (or inferred from name)
-- Skips sender/transaction/proof requirements
-- Creates order then redirects to WhatsApp
-- WhatsApp number constant in code: `923209310656`
+- detected when payment method is `paymentType === 'manual_chat'` (or inferred by name fallback)
+- sender/transaction/proof not required
+- order is created then redirected to WhatsApp
+- hardcoded number: `923209310656`
 
-## 10) Admin Order Ops and Messaging
+## 11) Orders Admin + Messaging
 
-Main admin order page: `app/admin/orders/page.tsx`
+Main file: `app/admin/orders/page.tsx`
 
-Capabilities:
-- Real-time orders list
-- Filter/search by status/text
-- Approve/reject with status lock handling
-- Admin-to-user chat messages
-- Attachment support via media library (`chat-attachments`)
-- Notification creation to user on admin actions
-- Bulk delete all orders (admin only)
+Features:
+- realtime orders feed
+- filters/search
+- approve/reject actions
+- status finalization metadata (`statusFinal`, `statusFinalizedAt`)
+- admin/user chat per order (attachments supported)
+- user notifications on admin actions
+- admin-only bulk "Delete All Orders" (batched)
 
-Order messaging API:
-- `POST /api/orders/[orderId]/messages`
-- Validates order access and attachment ownership/related order
-- Appends message to `orders.messages`
-- Updates latest message preview/timestamps
-- If sender is user, sends notifications to staff recipients
+Order message API:
+- endpoint: `POST /api/orders/[orderId]/messages`
+- checks order access
+- validates attachment against `media_files`
+- enforces attachment `relatedOrderId` match
+- stores message in `orders.messages`
+- updates preview/timestamps
+- if sender is user, creates admin/staff notifications
 
-## 11) Dashboard (User Side)
+## 12) User Dashboard
 
 Main file: `app/dashboard/page.tsx`
 
 Features:
-- Real-time user orders and notifications
-- Order message center with attachments
-- Mark notifications read/all-read
-- Profile update (including avatar upload to `profiles` folder)
-- Password change for password-provider accounts
+- realtime user orders
+- order chat interface + attachment support
+- realtime notifications + mark single/all as read
+- profile updates (including avatar upload to `profiles`)
+- password update for email/password users
 
-## 12) Notifications and Push
+## 13) Upload and Media System
+
+Core files:
+- `lib/server/local-upload.ts`
+- `app/api/upload/route.ts`
+- `app/api/upload/library/route.ts`
+- `app/api/upload/[mediaId]/route.ts`
+- `lib/storage-utils.ts`
+
+Allowed folders:
+- public: `tools`, `services`, `blogs`, `partners`, `profiles`
+- protected: `payment-proofs`, `chat-attachments`
+
+Key behavior:
+- strict folder alias normalization
+- per-folder file extension + MIME + size validation
+- path traversal protections and root-bound path checks
+- metadata persisted in `media_files`
+- optional replace-by-media-id flow
+
+Access rules:
+- protected file reads require auth token (header bearer or `?token=` query)
+- `chat-attachments` require `relatedOrderId`
+- non-staff ownership checks are enforced
+
+Library endpoint:
+- staff can query multiple folders (`folders=...`)
+- non-staff is restricted to owned media/folder rules
+
+## 14) Notifications and Push
 
 In-app notifications:
-- Stored in Firestore `notifications`
-- Displayed by `NotificationBell`, dashboard panels, and tickers
+- stored in `notifications`
+- consumed by navbar bell, dashboard, user ticker, admin ticker
 
-Admin broadcast UI:
-- `app/admin/notifications/page.tsx`
-- Broadcast or targeted sends
-- Logs dispatch in `notification_dispatches`
+Push registration:
+- client bootstrap in `components/PushNotificationBootstrap.tsx`
+- only registers if browser permission already `granted`
+- API endpoint `POST /api/push/register` stores token in `push_tokens` with SHA256 token hash as doc id
 
-Push token registration:
-- Client bootstrap: `components/PushNotificationBootstrap.tsx`
-- API: `POST /api/push/register`
-- Tokens stored in `push_tokens` (doc ID = SHA256(token))
+Current server sender:
+- `lib/server/notifications.ts` writes in-app notifications only
+- `notifyUsers()` returns `{ sent: 0, failed: 0 }` (no real FCM push dispatch there yet)
 
-Current server notification sender (`lib/server/notifications.ts`):
-- Creates in-app notifications only
-- Does not currently send native FCM push payloads
+Engagement prompt:
+- `components/EngagementPrompt.tsx`
+- shows after ~12-18s
+- 3-day localStorage cooldown
+- requests notification permission only when state is `default`
 
-## 13) Giveaway and Reviews Subsystems
+## 15) Coupons, Promo Ticker, Search
 
-### Giveaway
-- Route: `/giveaway`
-- Data from `giveaways`
-- Likes stored as array field `likedBy`
-- Comments in subcollection `giveaways/{id}/comments`
-- Uses auth guard by redirect to login for actions
+Coupons:
+- rules/normalization in `lib/coupons.ts`
+- route-aware visibility logic (`global`, `category`, `product`)
+- expiry parsing handles timestamp/date string formats
 
-### Service reviews
-- Tool detail page uses `service_reviews`
-- Submission includes masked email and optional photo URL
-- Security rules enforce shape and rating range
+Promo ticker:
+- `components/GlobalPromoTicker.tsx`
+- picks best active coupon for current route
+- supports no-expiry coupons (`LIMITED` countdown label)
 
-## 14) Blog and SEO
+Search:
+- public nav search in `components/Navbar.tsx` (tools/blogs/giveaways)
+- admin search in `app/admin/layout.tsx` (services, orders, blogs, giveaways, users)
+- CSS guard in `app/globals.css`: closed public search panel is non-interactive (`pointer-events: none`, hidden visibility)
 
-Blog routes:
-- `/blogs` (main)
-- `/blog` redirects to `/blogs`
+## 16) Rich Text and Content Rendering
 
-Server helpers:
-- `lib/server/blog-posts.ts` (published status + legacy flag support)
+Editor/renderer stack:
+- `components/RichTextEditor.tsx`
+- `components/RichTextContent.tsx`
+- `lib/rich-text.ts`
 
-SEO infra:
-- `lib/seo.ts` metadata builders
+Supported formatting:
+- markdown basics (bold/italic/lists/links/code/etc)
+- raw allowed tags subset including `<u>` and `<span>`
+- span attributes for color/size (`data-rich-color`, `data-rich-size`)
+- plain URL auto-linking
+- safe link handling helpers via `lib/blog-links.ts`
+
+Used by admin content flows (blogs, giveaways, tools) and public detail pages.
+
+## 17) Blog, Giveaway, Reviews, SEO
+
+Blog:
+- canonical routes: `/blogs`, `/blogs/[slug]`
+- legacy compatibility routes: `/blog`, `/blog/[slug]`
+- publish logic handles both `status=published` and legacy `published=true`
+
+Giveaway:
+- route: `/giveaway`
+- collection: `giveaways`
+- comments/entries in subcollections
+
+Reviews:
+- `service_reviews` with rules-validated payload and rating range
+
+SEO:
+- metadata helpers in `lib/seo.ts`
 - `app/robots.ts` disallows `/admin`, `/dashboard`, `/checkout`, `/api`
-- `app/sitemap.ts` includes static and dynamic routes from Firestore when admin creds exist
+- `app/sitemap.ts` builds static + dynamic entries (services/blogs/agency services) with Firestore timeout and credential checks
 
-## 15) Settings System
+## 18) Settings and Defaults
 
-`context/SettingsContext.tsx` listens to:
-- `settings/general`
-- `settings/socials`
+Settings context (`context/SettingsContext.tsx`) listens to:
+- `settings/general` (support email/phone)
+- `settings/socials` (social links)
 
-Used for global support/contact/social links with defaults fallback.
+If missing/inaccessible, hardcoded defaults are used for support and social URLs.
 
-Admin editors:
-- `app/admin/settings/page.tsx` -> `settings/general`
-- `app/admin/socials/page.tsx` -> `settings/socials`
+## 19) Environment and Config Notes
 
-## 16) Environment Variables (Operational)
+Environment contract is in `.env.example`.
 
-Reference source: `.env.example`
-
-Major groups:
-- App URL: `APP_URL`, `NEXT_PUBLIC_APP_URL`
-- Firebase public client config
-- Firebase admin service credentials
-- FCM web push VAPID key
-- Cron secret
-- Hostinger upload roots/base/max sizes/debug flags
+Key groups:
+- app URL (`APP_URL`, `NEXT_PUBLIC_APP_URL`)
+- Firebase client public env
+- Firebase admin creds (explicit cert path; no implicit ADC fallback)
+- optional VAPID key for web push
+- cron secret
+- Hostinger upload path/size/debug envs
 
 Important behavior:
-- Client Firebase config can fallback to `firebase-config.json`.
-- Password reset URL must start with `https://hammadtools.com/reset-password`.
+- Firebase client config can fallback to `firebase-config.json`
+- password reset custom URL must start with `https://hammadtools.com/reset-password`
+- service worker `public/firebase-messaging-sw.js` contains hardcoded Firebase web config values
 
-## 17) Build and Deploy Notes
+## 20) Deployment and Operations
 
-NPM scripts:
-- `npm run dev`
-- `npm run build` (runs Next build + standalone preparation)
-- `npm run start` (standalone server)
-- `npm run lint`
+- standalone deployment supported
+- post-build script copies `.next/static` and `public` into `.next/standalone`
+- cron endpoint `/api/cron/expire-entitlements`:
+  - expires active entitlements past due date
+  - marks near-expiry notices (24h window)
+  - creates in-app notifications via `notifyUsers`
+- cron auth accepts:
+  - `x-vercel-cron: 1`
+  - or matching `CRON_SECRET` via query/header
 
-Cron:
-- `vercel.json` schedules `/api/cron/expire-entitlements` daily at `0 0 * * *`.
+## 21) Known Constraints and Risks
 
-Expiry cron behavior:
-- Expires due active entitlements
-- Marks near-expiry notifications (24h window)
-- Creates in-app notifications
+Current hardcoded constants:
+- super-admin email: `technicalhammad39@gmail.com`
+- manual order WhatsApp target: `923209310656`
+- footer dev link points to same WhatsApp number
 
-## 18) API Surface Map
+Observed code risks:
+- mixed `staff` vs `manager` semantics across modules
+- entitlement creation flow is not clearly present in this codebase, while entitlement expiry/reporting is present
+- footer has a copyright glyph encoding artifact in the footer text
+- no automated tests found; validation is mostly manual + lint/build
+- `next.config.ts` has `eslint.ignoreDuringBuilds: true` (lint will not block production build)
 
-- `POST /api/auth/profile`: upsert authenticated user profile
-- `POST /api/newsletter/subscribe`: validated + rate-limited newsletter subscribe
-- `POST /api/push/register`: register/update push token for current user
-- `POST /api/upload`: upload media
-- `GET /api/upload/library`: list media by folder/filter
-- `GET /api/upload/:mediaId`: stream media
-- `DELETE /api/upload/:mediaId`: delete media
-- `GET /api/upload/diagnostics`: admin diagnostics
-- `POST /api/orders/:orderId/messages`: append order message
-- `POST /api/admin/users`: create auth user + profile
-- `PATCH /api/admin/users/:userId`: set role / set ban
-- `DELETE /api/admin/users/:userId`: full user cleanup delete
-- `GET /api/admin/subscribers`: admin subscriber list
-- `GET|POST /api/cron/expire-entitlements`: entitlement expiry job
+## 22) Change Playbooks (Where to Edit)
 
-## 19) Known Constraints and Hardcoded Values
+Checkout/order schema changes:
+- `app/checkout/page.tsx`
+- `lib/types/domain.ts`
+- `app/admin/orders/page.tsx`
+- `app/dashboard/page.tsx`
+- `firestore.rules`
 
-- Super admin email hardcoded in multiple modules.
-- Manual WhatsApp number hardcoded in checkout page.
-- Role handling has mixed support for `staff` vs `manager` in different checks.
-- No automated test suite currently in repository.
+Order status or messaging behavior:
+- `lib/order-system.ts`
+- `app/admin/orders/page.tsx`
+- `app/api/orders/[orderId]/messages/route.ts`
+- `firestore.rules`
 
-## 20) Change Playbooks (Where to Edit)
+Upload/media policies:
+- `lib/server/local-upload.ts`
+- `app/api/upload/route.ts`
+- `app/api/upload/library/route.ts`
+- `app/api/upload/[mediaId]/route.ts`
+- `lib/storage-utils.ts`
+- `components/MediaLibraryModal.tsx`
 
-### A) Add or change checkout fields
-- UI validation and payload: `app/checkout/page.tsx`
-- Order type/interface compatibility: `lib/types/domain.ts`
-- Admin display mapping: `app/admin/orders/page.tsx`
-- Dashboard display mapping: `app/dashboard/page.tsx`
-- Rules if needed: `firestore.rules`
+Auth/role model:
+- `context/AuthContext.tsx`
+- `lib/server/auth.ts`
+- `app/api/auth/profile/route.ts`
+- `app/api/admin/users/route.ts`
+- `app/api/admin/users/[userId]/route.ts`
+- `firestore.rules`
 
-### B) Change order status workflow
-- Status normalization/labels: `lib/order-system.ts`
-- Admin approve/reject logic: `app/admin/orders/page.tsx`
-- Message route side-effects: `app/api/orders/[orderId]/messages/route.ts`
-- Rule locks: `firestore.rules`
+Notifications/push:
+- `app/admin/notifications/page.tsx`
+- `lib/server/notifications.ts`
+- `components/PushNotificationBootstrap.tsx`
+- `app/api/push/register/route.ts`
 
-### C) Modify upload limits/types/folders
-- Folder config: `lib/server/local-upload.ts`
-- Upload endpoint behavior: `app/api/upload/route.ts`
-- File serve/delete behavior: `app/api/upload/[mediaId]/route.ts`
-- Client wrappers/UI: `lib/storage-utils.ts`, `components/MediaLibraryModal.tsx`
+SEO/branding:
+- `lib/seo.ts`
+- `app/layout.tsx`
+- `app/robots.ts`
+- `app/sitemap.ts`
+- `context/SettingsContext.tsx`
 
-### D) Add admin-only tool or page
-- Add route under `app/admin/*`
-- Register nav item/search integration in `app/admin/layout.tsx`
-- Apply role guard using `useAuth()` (`isAdmin` or `isStaff`)
-- Update rules/API if new collection is added
+## 23) Safe Release Checklist
 
-### E) Change notification strategy
-- In-app generation logic: `app/admin/notifications/page.tsx`, `lib/server/notifications.ts`
-- User/admin consumers: `components/NotificationBell.tsx`, dashboard/admin pages
-- Push registration flow: `components/PushNotificationBootstrap.tsx`, `/api/push/register`
+1. Validate Firestore rules impact for any write-path changes.
+2. Re-test role matrix for user/manager/admin/super-admin email.
+3. Test upload flow for both public and protected folders.
+4. Test checkout for standard and manual-chat payment methods.
+5. Test order chat with and without media attachments.
+6. Test dashboard notification mark-read flows.
+7. Run `npm run lint`.
+8. Run `npm run build` and smoke test standalone start.
 
-### F) Change public branding/SEO
-- Site metadata helpers: `lib/seo.ts`
-- Root metadata/layout schema: `app/layout.tsx`
-- Robots and sitemap: `app/robots.ts`, `app/sitemap.ts`
-- Settings-driven contact/social: `context/SettingsContext.tsx`, admin settings/socials pages
-
-## 21) Safe Change Checklist
-
-Before shipping major changes:
-1. Validate Firestore rules impact for new/changed writes.
-2. Verify role behavior for both admin and non-admin accounts.
-3. Test upload path for both public and protected folders.
-4. Test checkout end-to-end (normal + manual chat payment modes).
-5. Test order messaging with and without attachments.
-6. Test dashboard notifications read flow.
-7. Run `npm run lint` and `npm run build`.
-8. Confirm cron secret behavior if modifying entitlement job.
-
-## 22) Related Existing Docs
+## 24) Related Docs in `docs/`
 
 - `docs/media-records-schema.md`
 - `docs/media-api-examples.md`
 
-These two docs remain useful for media API payload examples and record structure.
+Use these for media payload field-level reference and example request/response structures.
 
-## 18) 2026-05-07 System Audit Fixes
+## 25) 2026-05-08 Production Audit Notes
 
-### Stability / IP Blocking
-- No app-wide middleware firewall, deny list, or 429 IP blocking logic exists in this codebase after audit.
-- Removed the newsletter subscribe route's in-memory per-IP rate limiter so normal repeated access from the same IP is not blocked by app code.
-- If users still see ERR_QUIC or VPN-only access, inspect Hostinger/CDN/WAF/HTTP3/QUIC settings because that is outside this Next.js app.
+Root causes identified and fixed:
+- frontend “sync issue” was largely page caching, not Firestore write failure:
+  - `app/blogs/page.tsx`
+  - `app/blogs/[slug]/page.tsx`
+  - `app/giveaway/page.tsx`
+  - `app/services/page.tsx`
+  - `app/services/[slug]/page.tsx`
+  - these now render dynamically instead of waiting on `revalidate = 120`
+- admin rich text editor was not a real WYSIWYG editor:
+  - old editor stored markdown/raw HTML snippets from a textarea
+  - replaced with a `contentEditable` editor in `components/RichTextEditor.tsx`
+  - sanitized HTML pipeline now lives in `lib/rich-text.ts`
+- frontend content rendering mismatch:
+  - `components/RichTextContent.tsx` now renders sanitized HTML output from the editor
+  - same color/size/link rules are shared by editor + frontend
+- image preview mismatch came from incomplete media metadata:
+  - `StoredFileMetadata` now supports `publicPath`
+  - `lib/storage-utils.ts` now preserves normalized `publicPath`
+  - `lib/image-display.ts` already preferred `publicPath`, so the missing field was the actual gap
+- admin global search previously opened collection roots only:
+  - `app/admin/layout.tsx` now deep-links edit targets with `?edit=<id>`
+  - edit auto-open logic added in:
+    - `app/admin/tools/page.tsx`
+    - `app/admin/blog/page.tsx`
+    - `app/admin/giveaways/page.tsx`
+    - `app/admin/agency-services/page.tsx`
+- public tools category strip had drag/click interference:
+  - fixed in `components/ServicesSection.tsx` by separating drag suppression timing from click handling
+- scroll overshoot/lag sources:
+  - `components/LenisProvider.tsx` had aggressive touch/wheel settings
+  - `components/GsapSectionAnimator.tsx` was observing subtree mutations continuously
+  - `react-fast-marquee` was used on home/testimonials
+  - fixes:
+    - softer Lenis config
+    - removed persistent GSAP mutation observer
+    - replaced JS marquee usage in:
+      - `app/HomePageClient.tsx`
+      - `components/Testimonials.tsx`
 
-### Hero Visibility / Performance
-- `components/GsapSectionAnimator.tsx` now only animates elements explicitly marked with `data-gsap-reveal="gsap"` and skips hero-critical text.
-- `components/Hero.tsx` marks desktop hero text as GSAP-skip to prevent opacity/transform animation from hiding the headline.
-- `components/AnimatedBackground.tsx` disables falling particles; `app/globals.css` removes heavy FAQ/ambient animation CSS.
+Files added/changed for the new rich text pipeline:
+- `lib/rich-text.ts`
+- `components/RichTextEditor.tsx`
+- `components/RichTextContent.tsx`
+- `app/globals.css`
 
-### Notifications / Engagement
-- `components/EngagementPrompt.tsx` shows the WhatsApp/notifications popup after 12-18 seconds with a 3-day localStorage cooldown.
-- Browser notification permission is requested only when permission is still `default`, never when already granted/denied.
-- `components/PushNotificationBootstrap.tsx` no longer prompts immediately; it only registers FCM when permission is already granted.
+Current validation status after this audit:
+- `npm run lint` passes
+- `npm run build` passes
+- standalone smoke responses returned `200` for:
+  - `/`
+  - `/tools`
+  - `/blogs`
+  - `/giveaway`
+  - `/admin/blog`
 
-### Search
-- Public navbar search now opens a slide-down search panel and live-searches tools, published blogs, and giveaways.
-- Admin layout search now uses realtime Firestore listeners and searches tools/services, orders, blogs, giveaways, and users for admins.
-- Mobile admin header has a search icon and mobile search panel.
-- Closed public search panel uses `pointer-events: none` and `visibility: hidden` so it cannot intercept mobile clicks.
-
-### Rich Text / Links
-- Lightweight editor: `components/RichTextEditor.tsx`.
-- Renderer: `components/RichTextContent.tsx`.
-- Helpers: `lib/rich-text.ts`.
-- Supports bold, italic, underline, small/medium/large span sizing, white/yellow/grey span color, manual links, and pasted URL auto-linking.
-- Applied to admin blog, giveaways, and tools content. Blog/giveaway/tool detail pages render clickable rich content.
-
-### Coupons
-- `lib/coupons.ts` centralizes scope visibility rules.
-- Global coupons show on all non-admin pages.
-- Category coupons show on home, tools, matching category, and tools in the matching category.
-- Product coupons show on home, tools, and matching product page.
-- `components/GlobalPromoTicker.tsx` now picks the best active coupon for the current route and supports coupons without expiry using `LIMITED` countdown text.
-
-### Uploads / Media Library
-- `app/api/upload/library/route.ts` supports unified multi-folder library queries for staff.
-- `components/MediaLibraryModal.tsx` accepts `includeFolders` while uploads still go to the selected destination folder.
-- Admin tools/blog/giveaways/categories/agency modals show a unified `tools + blogs + services` media library.
-- `components/UploadedImage.tsx` defaults to fallback-on-error so stale or missing uploaded URLs do not leave blank UI.
-
-### Admin UX
-- Tools, blogs, giveaways, categories, and agency services scroll to their editor when add/edit opens.
-- Category filter row on `/tools` supports pointer drag horizontal scrolling on desktop and mobile.
-
-### Verification
-- `npm run lint` passes.
-- `npm run build` passes and `scripts/prepare-standalone.mjs` copies `.next/static` and `public` into `.next/standalone` for Hostinger.
-- Standalone server smoke-tested on localhost desktop/mobile/fresh-storage state. Local uploaded-media URLs 404 if the matching files are absent from `public/uploads`; UI falls back visually, but production needs the Hostinger uploaded files present in the configured upload root.

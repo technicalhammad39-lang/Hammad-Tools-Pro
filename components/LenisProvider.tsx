@@ -75,12 +75,12 @@ export default function LenisProvider() {
       smoothWheel: true,
       anchors: true,
       stopInertiaOnNavigate: true,
-      allowNestedScroll: true,
-      syncTouch: true,
-      duration: 1.35,
-      easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      wheelMultiplier: 1.03,
-      touchMultiplier: 1.08,
+      allowNestedScroll: false,
+      syncTouch: false,
+      duration: 0.9,
+      easing: (t: number) => 1 - Math.pow(1 - t, 3),
+      wheelMultiplier: 0.82,
+      touchMultiplier: 0.68,
       prevent: (node) => {
         if (!(node instanceof HTMLElement)) {
           return false;

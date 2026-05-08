@@ -3,7 +3,6 @@
 import React from 'react';
 import Image from 'next/image';
 import { Star, Quote } from 'lucide-react';
-import Marquee from 'react-fast-marquee';
 
 const testimonials = [
   {
@@ -105,26 +104,29 @@ const Testimonials = () => {
           <p className="text-brand-text/60 text-[10px] md:text-sm font-black uppercase tracking-widest">Join 10,000+ satisfied users worldwide.</p>
         </div>
 
-        {/* Unified Layout: Dual-Row Auto Marquee for all screens */}
         <div className="relative space-y-4 md:space-y-8 -mx-4 sm:-mx-6 lg:-mx-8">
           <div className="pointer-events-none absolute inset-y-0 left-0 w-16 sm:w-24 lg:w-40 bg-gradient-to-r from-brand-bg to-transparent z-10" />
           <div className="pointer-events-none absolute inset-y-0 right-0 w-16 sm:w-24 lg:w-40 bg-gradient-to-l from-brand-bg to-transparent z-10" />
 
-          <Marquee speed={20} gradient={false} pauseOnHover={false}>
-            {[...firstRow, ...firstRow, ...firstRow].map((t, i) => (
-              <div key={`row-1-${i}`} className="mx-2 sm:mx-3 md:mx-4 w-[220px] sm:w-[260px] md:w-[320px] lg:w-[360px] shrink-0">
-                <TestimonialCard t={t} i={i} />
-              </div>
-            ))}
-          </Marquee>
+          <div className="testimonial-marquee">
+            <div className="testimonial-marquee-track">
+              {[...firstRow, ...firstRow, ...firstRow].map((t, i) => (
+                <div key={`row-1-${i}`} className="mx-2 sm:mx-3 md:mx-4 w-[220px] sm:w-[260px] md:w-[320px] lg:w-[360px] shrink-0">
+                  <TestimonialCard t={t} i={i} />
+                </div>
+              ))}
+            </div>
+          </div>
 
-          <Marquee speed={15} direction="right" gradient={false} pauseOnHover={false}>
-            {[...secondRow, ...secondRow, ...secondRow].map((t, i) => (
-              <div key={`row-2-${i}`} className="mx-2 sm:mx-3 md:mx-4 w-[220px] sm:w-[260px] md:w-[320px] lg:w-[360px] shrink-0">
-                <TestimonialCard t={t} i={i} />
-              </div>
-            ))}
-          </Marquee>
+          <div className="testimonial-marquee">
+            <div className="testimonial-marquee-track testimonial-marquee-track-reverse">
+              {[...secondRow, ...secondRow, ...secondRow].map((t, i) => (
+                <div key={`row-2-${i}`} className="mx-2 sm:mx-3 md:mx-4 w-[220px] sm:w-[260px] md:w-[320px] lg:w-[360px] shrink-0">
+                  <TestimonialCard t={t} i={i} />
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </section>

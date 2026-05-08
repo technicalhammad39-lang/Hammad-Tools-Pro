@@ -14,7 +14,7 @@ import { getAgencyServiceBySlug } from '@/lib/server/agency-services';
 
 type PageParams = { slug: string };
 
-export const revalidate = 120;
+export const dynamic = 'force-dynamic';
 
 export async function generateMetadata({
   params,

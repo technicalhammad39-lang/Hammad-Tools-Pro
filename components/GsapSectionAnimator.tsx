@@ -67,7 +67,7 @@ function collectAnimationTargets(main: HTMLElement) {
     }
   }
 
-  return uniqueTargets.slice(0, 70);
+  return uniqueTargets.slice(0, 48);
 }
 
 function hasAnimated(target: HTMLElement) {
@@ -182,17 +182,11 @@ export default function GsapSectionAnimator() {
       const rerunOne = window.setTimeout(animateBatch, 260);
       const rerunTwo = window.setTimeout(animateBatch, 900);
 
-      const observer = new MutationObserver(() => {
-        animateBatch();
-      });
-      observer.observe(main, { childList: true, subtree: true });
-
       ScrollTrigger.refresh();
 
       return () => {
         window.clearTimeout(rerunOne);
         window.clearTimeout(rerunTwo);
-        observer.disconnect();
       };
     },
     { dependencies: [pathname], revertOnUpdate: true }

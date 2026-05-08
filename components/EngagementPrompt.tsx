@@ -5,17 +5,7 @@ import { Bell, MessageCircle, X } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 
 const WHATSAPP_CHANNEL_URL = 'https://whatsapp.com/channel/0029VaoX5ax8V0tjn0fc1j08';
-const POPUP_KEY = 'hammadtools_engagement_prompt_seen_at';
-const NOTIFICATION_KEY = 'hammadtools_notification_permission_prompted_at';
-const PROMPT_COOLDOWN_MS = 3 * 24 * 60 * 60 * 1000;
-
-function shouldPrompt(key: string) {
-  if (typeof window === 'undefined') {
-    return false;
-  }
-  const lastPromptedAt = Number(localStorage.getItem(key) || 0);
-  return !lastPromptedAt || Date.now() - lastPromptedAt > PROMPT_COOLDOWN_MS;
-}
+const NOTIFICATION_SESSION_KEY = 'hammadtools_notification_permission_prompted_session';
 
 async function requestNotifications() {
   if (typeof window === 'undefined' || !('Notification' in window)) {
@@ -24,7 +14,6 @@ async function requestNotifications() {
   if (Notification.permission !== 'default') {
     return;
   }
-  localStorage.setItem(NOTIFICATION_KEY, String(Date.now()));
   try {
     await Notification.requestPermission();
   } catch {
@@ -42,17 +31,36 @@ export default function EngagementPrompt() {
       return;
     }
 
-    const delay = 12_000 + Math.floor(Math.random() * 6_000);
-    const timer = window.setTimeout(() => {
-      if (shouldPrompt(POPUP_KEY)) {
+    const popupDelay = 12_000 + Math.floor(Math.random() * 6_000);
+    const popupTimer = window.setTimeout(() => {
+      if (!document.hidden) {
         setVisible(true);
       }
-      if ('Notification' in window && Notification.permission === 'default' && shouldPrompt(NOTIFICATION_KEY)) {
+    }, popupDelay);
+
+    const popupInterval = window.setInterval(() => {
+      if (!document.hidden) {
+        setVisible(true);
+      }
+    }, 30_000);
+
+    const notificationDelay = 10_000 + Math.floor(Math.random() * 10_000);
+    const notificationTimer = window.setTimeout(() => {
+      if (
+        'Notification' in window &&
+        Notification.permission === 'default' &&
+        sessionStorage.getItem(NOTIFICATION_SESSION_KEY) !== '1'
+      ) {
+        sessionStorage.setItem(NOTIFICATION_SESSION_KEY, '1');
         void requestNotifications();
       }
-    }, delay);
+    }, notificationDelay);
 
-    return () => window.clearTimeout(timer);
+    return () => {
+      window.clearTimeout(popupTimer);
+      window.clearTimeout(notificationTimer);
+      window.clearInterval(popupInterval);
+    };
   }, [isAdminRoute]);
 
   if (!visible || isAdminRoute) {
@@ -60,7 +68,6 @@ export default function EngagementPrompt() {
   }
 
   function dismiss() {
-    localStorage.setItem(POPUP_KEY, String(Date.now()));
     setVisible(false);
   }
 

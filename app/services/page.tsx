@@ -3,7 +3,7 @@ import ServicesPageClient from './ServicesPageClient';
 import { createAutoPageMetadata } from '@/lib/seo';
 import { getPublishedAgencyServices } from '@/lib/server/agency-services';
 
-export const revalidate = 120;
+export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(): Promise<Metadata> {
   const services = await getPublishedAgencyServices();

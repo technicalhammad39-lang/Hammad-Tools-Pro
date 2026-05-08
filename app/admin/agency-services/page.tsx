@@ -29,6 +29,7 @@ import {
   Tag
 } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { deleteUploadedMedia, toStorageMetadataFromLibrary } from '@/lib/storage-utils';
 import { logFirestoreSaveFailure, sanitizeForFirestore } from '@/lib/firestore-sanitize';
 import type { StoredFileMetadata } from '@/lib/types/domain';
@@ -50,12 +51,15 @@ interface AgencyService {
 const ManageAgencyServices = () => {
   const { isStaff } = useAuth();
   const toast = useToast();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [services, setServices] = useState<AgencyService[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
   const [isMediaLibraryOpen, setIsMediaLibraryOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const editorRef = useRef<HTMLDivElement | null>(null);
+  const editParam = searchParams.get('edit')?.trim() || '';
   
   // Form State
   const [form, setForm] = useState({
@@ -97,6 +101,38 @@ const ManageAgencyServices = () => {
     return () => cancelAnimationFrame(frame);
   }, [isAdding, editingId]);
 
+  useEffect(() => {
+    if (!editParam || !services.length) {
+      return;
+    }
+
+    const target = services.find((entry) => entry.id === editParam);
+    if (!target) {
+      return;
+    }
+
+    if (editingId === target.id && isAdding) {
+      return;
+    }
+
+    const frame = window.requestAnimationFrame(() => {
+      setEditingId(target.id);
+      setForm({
+        title: target.title,
+        description: target.description,
+        thumbnail: resolveImageSource(target, {
+          mediaPaths: ['thumbnailMedia'],
+          stringPaths: ['thumbnail'],
+        }),
+        thumbnailMedia: target.thumbnailMedia || null,
+        tags: target.tags || [],
+      });
+      setIsAdding(true);
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [editParam, services, editingId, isAdding]);
+
   const handleEdit = (service: AgencyService) => {
     setEditingId(service.id);
     setForm({
@@ -137,7 +173,8 @@ const ManageAgencyServices = () => {
         }));
         toast.success('Service created');
       }
-      
+
+      router.replace('/admin/agency-services', { scroll: false });
       resetForm();
     } catch (error) {
       logFirestoreSaveFailure({
@@ -171,6 +208,7 @@ const ManageAgencyServices = () => {
   };
 
   const resetForm = () => {
+    router.replace('/admin/agency-services', { scroll: false });
     setIsAdding(false);
     setEditingId(null);
     setForm({ title: '', description: '', thumbnail: '', thumbnailMedia: null, tags: [] });
@@ -212,7 +250,7 @@ const ManageAgencyServices = () => {
           <p className="text-brand-text/40 text-[10px] md:text-sm font-black uppercase tracking-widest mt-2">Dynamic Control Hub for Elite Solutions</p>
         </div>
         <button 
-          onClick={() => { setIsAdding(true); setEditingId(null); }}
+          onClick={() => { router.replace('/admin/agency-services', { scroll: false }); setIsAdding(true); setEditingId(null); }}
           className="bg-primary text-brand-bg px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-[11px] flex items-center justify-center gap-3 border-b-4 border-[#FF8C2A] shadow-xl shadow-primary/10 transition-all active:scale-95"
         >
           <Plus className="w-5 h-5" />
@@ -387,7 +425,10 @@ const ManageAgencyServices = () => {
                </div>
                <div className="flex items-center gap-3">
                   <button 
-                    onClick={() => handleEdit(service)}
+                    onClick={() => {
+                      router.replace(`/admin/agency-services?edit=${encodeURIComponent(service.id)}`, { scroll: false });
+                      handleEdit(service);
+                    }}
                     className="p-4 bg-white/5 hover:bg-white/10 rounded-2xl text-primary transition-all border border-white/10"
                   >
                     <Edit2 className="w-5 h-5" />

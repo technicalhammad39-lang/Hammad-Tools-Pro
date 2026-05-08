@@ -54,9 +54,9 @@ const ServicesSection = () => {
   const categoryScrollerRef = useRef<HTMLDivElement | null>(null);
   const categoryDragRef = useRef({
     active: false,
-    dragged: false,
     startX: 0,
     scrollLeft: 0,
+    suppressClickUntil: 0,
   });
 
   useEffect(() => {
@@ -136,9 +136,9 @@ const ServicesSection = () => {
 
     categoryDragRef.current = {
       active: true,
-      dragged: false,
       startX: event.clientX,
       scrollLeft: scroller.scrollLeft,
+      suppressClickUntil: categoryDragRef.current.suppressClickUntil,
     };
     scroller.setPointerCapture(event.pointerId);
   };
@@ -152,7 +152,7 @@ const ServicesSection = () => {
 
     const deltaX = event.clientX - state.startX;
     if (Math.abs(deltaX) > 4) {
-      state.dragged = true;
+      state.suppressClickUntil = performance.now() + 180;
     }
     scroller.scrollLeft = state.scrollLeft - deltaX;
   };
@@ -166,13 +166,12 @@ const ServicesSection = () => {
   };
 
   const shouldIgnoreCategoryClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    if (!categoryDragRef.current.dragged) {
+    if (performance.now() >= categoryDragRef.current.suppressClickUntil) {
       return false;
     }
 
     event.preventDefault();
     event.stopPropagation();
-    categoryDragRef.current.dragged = false;
     return true;
   };
 

@@ -16,7 +16,6 @@ import {
   type CouponScope,
 } from '@/lib/coupons';
 
-const SESSION_HIDE_KEY = 'global_promo_ticker_hidden_v1';
 const FIRE = '\uD83D\uDD25';
 
 export interface PromoCouponData {
@@ -91,12 +90,7 @@ export default function GlobalPromoTicker({ couponData }: { couponData?: PromoCo
     [pathname]
   );
   const [productRouteContext, setProductRouteContext] = useState<CouponRouteContext | null>(null);
-  const [hiddenForSession, setHiddenForSession] = useState(() => {
-    if (typeof window === 'undefined') {
-      return false;
-    }
-    return sessionStorage.getItem(SESSION_HIDE_KEY) === '1';
-  });
+  const [hiddenForSession, setHiddenForSession] = useState(false);
   const [nowMs, setNowMs] = useState(() => Date.now());
   const [copied, setCopied] = useState(false);
   const rootRef = useRef<HTMLDivElement | null>(null);
@@ -238,9 +232,6 @@ export default function GlobalPromoTicker({ couponData }: { couponData?: PromoCo
 
   function handleClose() {
     setHiddenForSession(true);
-    if (typeof window !== 'undefined') {
-      sessionStorage.setItem(SESSION_HIDE_KEY, '1');
-    }
   }
 
   return (

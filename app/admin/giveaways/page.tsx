@@ -7,6 +7,7 @@ import { db } from '@/firebase';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy, Timestamp, onSnapshot, serverTimestamp } from 'firebase/firestore';
 import { Plus, Edit2, Trash2, Save, X, Gift, Calendar, Users, Trophy, Loader2, Image as ImageIcon } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { deleteUploadedMedia, toStorageMetadataFromLibrary } from '@/lib/storage-utils';
 import { logFirestoreSaveFailure, sanitizeForFirestore } from '@/lib/firestore-sanitize';
 import type { StoredFileMetadata } from '@/lib/types/domain';
@@ -39,6 +40,8 @@ function normalizeMultilineText(value: unknown) {
 const AdminGiveaways = () => {
   const { user, isStaff } = useAuth();
   const toast = useToast();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [giveaways, setGiveaways] = useState<Giveaway[]>([]);
   const [isAdding, setIsAdding] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -58,6 +61,7 @@ const AdminGiveaways = () => {
   });
   const [editingId, setEditingId] = useState<string | null>(null);
   const editorRef = useRef<HTMLDivElement | null>(null);
+  const editParam = searchParams.get('edit')?.trim() || '';
 
   useEffect(() => {
     if (!isStaff) return;
@@ -109,7 +113,8 @@ const AdminGiveaways = () => {
         }));
         toast.success('Giveaway created');
       }
-      
+
+      router.replace('/admin/giveaways', { scroll: false });
       setIsAdding(false);
       setEditingId(null);
       setForm({
@@ -142,6 +147,41 @@ const AdminGiveaways = () => {
       editorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
   }, [isAdding, editingId]);
+
+  useEffect(() => {
+    if (!editParam || !giveaways.length) {
+      return;
+    }
+
+    const target = giveaways.find((entry) => entry.id === editParam);
+    if (!target) {
+      return;
+    }
+
+    if (editingId === target.id && isAdding) {
+      return;
+    }
+
+    const frame = window.requestAnimationFrame(() => {
+      setForm({
+        title: target.title,
+        description: normalizeRichTextValue(normalizeMultilineText(target.description)),
+        prize: target.prize,
+        winnersCount: target.winnersCount,
+        status: target.status,
+        image: resolveImageSource(target, {
+          mediaPaths: ['imageMedia'],
+          stringPaths: ['image'],
+        }),
+        imageMedia: target.imageMedia || null,
+        endDate: target.endDate,
+      });
+      setEditingId(target.id);
+      setIsAdding(true);
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [editParam, giveaways, editingId, isAdding]);
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this giveaway?')) return;
@@ -180,7 +220,20 @@ const AdminGiveaways = () => {
             <p className="text-brand-text/60">Create and monitor giveaway events.</p>
           </div>
           <button 
-            onClick={() => setIsAdding(true)}
+            onClick={() => {
+              router.replace('/admin/giveaways', { scroll: false });
+              setEditingId(null);
+              setForm({
+                title: '',
+                description: '',
+                prize: '',
+                winnersCount: 1,
+                status: 'active',
+                image: '',
+                imageMedia: null,
+              });
+              setIsAdding(true);
+            }}
             className="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-xl font-bold flex items-center space-x-2 transition-all"
           >
             <Plus className="w-5 h-5" />
@@ -224,6 +277,7 @@ const AdminGiveaways = () => {
                     <UploadedImage
                       src={formImageSrc}
                       fallbackSrc="/services-card.webp"
+                      fallbackOnError={false}
                       alt="Preview"
                       className="absolute inset-0 w-full h-full object-cover"
                     />
@@ -254,7 +308,7 @@ const AdminGiveaways = () => {
               Line breaks, bullets and emojis are preserved in public giveaway posts.
             </p>
             <div className="flex justify-end space-x-4">
-              <button onClick={() => { setIsAdding(false); setEditingId(null); }} className="px-6 py-3 rounded-xl font-bold text-brand-text/60 hover:text-brand-text">Cancel</button>
+              <button onClick={() => { router.replace('/admin/giveaways', { scroll: false }); setIsAdding(false); setEditingId(null); }} className="px-6 py-3 rounded-xl font-bold text-brand-text/60 hover:text-brand-text">Cancel</button>
               <button onClick={handleSave} className="bg-primary px-8 py-3 rounded-xl font-bold text-white">
                 {editingId ? 'Push Update' : 'Launch Giveaway'}
               </button>
@@ -293,9 +347,10 @@ const AdminGiveaways = () => {
               <div className="flex items-center space-x-3">
                 <button 
                   onClick={() => {
+                    router.replace(`/admin/giveaways?edit=${encodeURIComponent(giveaway.id)}`, { scroll: false });
                     setForm({
                       title: giveaway.title,
-                      description: normalizeMultilineText(giveaway.description),
+                      description: normalizeRichTextValue(normalizeMultilineText(giveaway.description)),
                       prize: giveaway.prize,
                       winnersCount: giveaway.winnersCount,
                       status: giveaway.status,

@@ -22,8 +22,10 @@ import {
   Loader2,
   Image as ImageIcon,
   ArrowLeft,
+  Search,
 } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { deleteUploadedMedia, toStorageMetadataFromLibrary } from '@/lib/storage-utils';
 import { logFirestoreSaveFailure, sanitizeForFirestore } from '@/lib/firestore-sanitize';
 import type { Category, ProductItem, ProductPlan, StoredFileMetadata } from '@/lib/types/domain';
@@ -245,14 +247,18 @@ function mapDocToForm(item: ProductItem): ProductForm {
 const AdminProductsPage = () => {
   const { isStaff } = useAuth();
   const toast = useToast();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [products, setProducts] = useState<ProductItem[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
   const [isMediaLibraryOpen, setIsMediaLibraryOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [toolSearch, setToolSearch] = useState('');
   const [form, setForm] = useState<ProductForm>(defaultForm);
   const editorRef = useRef<HTMLDivElement | null>(null);
+  const editParam = searchParams.get('edit')?.trim() || '';
 
   useEffect(() => {
     if (!isStaff) {
@@ -293,6 +299,25 @@ const AdminProductsPage = () => {
     () => categories.filter((category) => category.active !== false && (category.type === 'tools' || category.type === 'both')),
     [categories]
   );
+  const filteredProducts = useMemo(() => {
+    const needle = toolSearch.trim().toLowerCase();
+    if (!needle) {
+      return products;
+    }
+
+    return products.filter((product) => {
+      const haystack = [
+        product.title || product.name || '',
+        product.categoryName || product.category || '',
+        product.description || '',
+        product.longDescription || '',
+      ]
+        .join(' ')
+        .toLowerCase();
+
+      return haystack.includes(needle);
+    });
+  }, [products, toolSearch]);
 
   const formModeLabel = editingId ? 'Edit Tool' : 'Add Tool';
   const formImageSrc = resolveImageSource(form, {
@@ -310,6 +335,29 @@ const AdminProductsPage = () => {
     return () => window.cancelAnimationFrame(frame);
   }, [isAdding, editingId]);
 
+  useEffect(() => {
+    if (!editParam || !products.length) {
+      return;
+    }
+
+    const target = products.find((item) => item.id === editParam);
+    if (!target) {
+      return;
+    }
+
+    if (editingId === target.id && isAdding) {
+      return;
+    }
+
+    const frame = window.requestAnimationFrame(() => {
+      setEditingId(target.id);
+      setForm(mapDocToForm(target));
+      setIsAdding(true);
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [editParam, products, editingId, isAdding]);
+
   if (!isStaff) {
     return (
       <div className="pt-32 pb-24 text-center">
@@ -320,18 +368,21 @@ const AdminProductsPage = () => {
   }
 
   function openAddForm() {
+    router.replace('/admin/tools', { scroll: false });
     setEditingId(null);
     setForm(defaultForm);
     setIsAdding(true);
   }
 
   function openEditForm(item: ProductItem) {
+    router.replace(`/admin/tools?edit=${encodeURIComponent(item.id)}`, { scroll: false });
     setEditingId(item.id);
     setForm(mapDocToForm(item));
     setIsAdding(true);
   }
 
   function closeForm() {
+    router.replace('/admin/tools', { scroll: false });
     setIsAdding(false);
     setEditingId(null);
     setForm(defaultForm);
@@ -498,6 +549,17 @@ const AdminProductsPage = () => {
           <Plus className="w-5 h-5" />
           <span>Add New Tool</span>
         </button>
+      </div>
+
+      <div className="relative max-w-xl">
+        <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-brand-text/30" />
+        <input
+          type="text"
+          value={toolSearch}
+          onChange={(event) => setToolSearch(event.target.value)}
+          placeholder="Search tools in this list..."
+          className="w-full rounded-2xl border border-white/10 bg-white/5 py-3 pl-11 pr-4 text-xs font-black uppercase tracking-widest text-brand-text focus:outline-none focus:border-primary/50"
+        />
       </div>
 
       <AnimatePresence>
@@ -866,7 +928,13 @@ const AdminProductsPage = () => {
       <div className="grid grid-cols-1 gap-6">
         {loading ? (
           <div className="text-center py-20 flex justify-center"><Loader2 className="w-10 h-10 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>
-        ) : products.map((product) => {
+        ) : filteredProducts.length === 0 ? (
+          <div className="rounded-[2rem] border border-white/10 bg-white/[0.03] px-6 py-12 text-center">
+            <p className="text-xs font-black uppercase tracking-widest text-brand-text/40">
+              No tools match this search.
+            </p>
+          </div>
+        ) : filteredProducts.map((product) => {
           const productImage = resolveImageSource(product, {
             mediaPaths: ['imageMedia'],
             stringPaths: ['image', 'thumbnail'],

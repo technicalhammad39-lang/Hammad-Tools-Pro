@@ -373,6 +373,7 @@ export function toStorageMetadata(
 ): {
   mediaId: string;
   fileUrl: string;
+  publicPath?: string;
   storagePath: string;
   fileName: string;
   mimeType: string;
@@ -382,9 +383,11 @@ export function toStorageMetadata(
   uploadedBy?: string;
 } {
   const normalizedUrl = normalizeImageUrl(media.url) || media.url;
+  const normalizedPublicPath = normalizeImageUrl(media.publicPath) || media.publicPath;
   const metadata = {
     mediaId: media.id,
     fileUrl: normalizedUrl,
+    publicPath: normalizedPublicPath || undefined,
     storagePath: media.storagePath,
     fileName: media.fileName,
     mimeType: media.mimeType,
@@ -409,6 +412,7 @@ export function toStorageMetadataFromLibrary(
 ): {
   mediaId: string;
   fileUrl: string;
+  publicPath?: string;
   storagePath: string;
   fileName: string;
   mimeType: string;
