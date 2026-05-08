@@ -34,7 +34,7 @@ import { deleteUploadedMedia, toStorageMetadataFromLibrary } from '@/lib/storage
 import { logFirestoreSaveFailure, sanitizeForFirestore } from '@/lib/firestore-sanitize';
 import type { StoredFileMetadata } from '@/lib/types/domain';
 import { useToast } from '@/components/ToastProvider';
-import { resolveImageSource } from '@/lib/image-display';
+import { resolveImageSource, resolveStoredMediaUrl } from '@/lib/image-display';
 import UploadedImage from '@/components/UploadedImage';
 import MediaLibraryModal from '@/components/MediaLibraryModal';
 
@@ -450,9 +450,10 @@ const ManageAgencyServices = () => {
         onClose={() => setIsMediaLibraryOpen(false)}
         allowDelete
         onSelect={(media) => {
+          const resolvedImage = resolveStoredMediaUrl(media) || media.url;
           setForm((prev) => ({
             ...prev,
-            thumbnail: media.url,
+            thumbnail: resolvedImage,
             thumbnailMedia: toStorageMetadataFromLibrary(media),
           }));
         }}

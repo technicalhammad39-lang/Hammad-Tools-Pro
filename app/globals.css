@@ -489,6 +489,8 @@ select option:checked {
 .home-logo-marquee-track {
   display: flex;
   width: max-content;
+  min-width: max-content;
+  flex-wrap: nowrap;
   animation: homeLogoMarquee 22s linear infinite;
   will-change: transform;
 }
@@ -504,6 +506,8 @@ select option:checked {
 .testimonial-marquee-track {
   display: flex;
   width: max-content;
+  min-width: max-content;
+  flex-wrap: nowrap;
   animation: homeLogoMarquee 28s linear infinite;
   will-change: transform;
 }

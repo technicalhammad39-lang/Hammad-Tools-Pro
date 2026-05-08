@@ -29,15 +29,15 @@ export default function Home() {
       
       {/* Logo Marquee Section */}
       <section
-        data-gsap-reveal="gsap"
-        className="py-5 md:py-10 border-y border-white/5 bg-black/40 backdrop-blur-xl relative z-10"
-      >
-        <div className="home-logo-marquee">
-          <div className="home-logo-marquee-track">
-            {[...BRAND_LOGOS, ...BRAND_LOGOS, ...BRAND_LOGOS].map((platform, index) => (
-              <div key={`${platform.name}-${index}`} className="flex items-center space-x-1.5 md:space-x-3 mx-5 md:mx-14 group shrink-0">
-                <div
-                  className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full"
+          data-gsap-reveal="gsap"
+          className="py-5 md:py-10 border-y border-white/5 bg-black/40 backdrop-blur-xl relative z-10"
+        >
+          <div className="home-logo-marquee">
+            <div className="home-logo-marquee-track">
+              {[...BRAND_LOGOS, ...BRAND_LOGOS].map((platform, index) => (
+                <div key={`${platform.name}-${index}`} className="flex items-center space-x-1.5 md:space-x-3 mx-5 md:mx-14 group shrink-0">
+                  <div
+                    className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full"
                   style={{ backgroundColor: platform.color }}
                 />
                 <span className="text-base sm:text-xl md:text-2xl font-black text-brand-text/40 group-hover:text-brand-text transition-colors duration-300 uppercase italic whitespace-nowrap">

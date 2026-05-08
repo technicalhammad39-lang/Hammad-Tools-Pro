@@ -131,7 +131,8 @@ export default function RichTextEditor({
       return;
     }
 
-    document.execCommand('styleWithCSS', false, 'true');
+    const shouldUseInlineStyles = command === 'fontSize' || command === 'foreColor';
+    document.execCommand('styleWithCSS', false, shouldUseInlineStyles ? 'true' : 'false');
     document.execCommand(command, false, valueToApply);
     emitChange({ keepFocus: true });
   }

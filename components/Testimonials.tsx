@@ -58,14 +58,14 @@ interface Testimonial {
 }
 
 const TestimonialCard = ({ t }: { t: Testimonial; i: number }) => (
-  <div className="glass rounded-[1.5rem] sm:rounded-[2rem] p-4 sm:p-5 md:p-6 border border-white/5 relative group hover:border-primary/30 transition-all duration-500 w-full flex-shrink-0">
-    <Quote className="absolute top-4 right-6 w-8 h-8 text-primary/5 group-hover:text-primary/10 transition-colors" />
+  <div className="rounded-[1.5rem] sm:rounded-[2rem] p-4 sm:p-5 md:p-6 border border-white/8 bg-[#141414] relative transition-colors duration-200 w-full flex-shrink-0">
+    <Quote className="absolute top-4 right-6 w-8 h-8 text-primary/10" />
 
     <div className="flex items-center space-x-1 mb-4 text-primary">
       {[...Array(t.rating)].map((_, starIdx) => <Star key={starIdx} className="w-2.5 h-2.5 fill-current" />)}
     </div>
 
-    <p className="text-brand-text/70 mb-5 sm:mb-6 leading-relaxed italic text-[10px] sm:text-[11px] font-medium line-clamp-3 min-h-[48px]">
+    <p className="text-brand-text/72 mb-5 sm:mb-6 leading-relaxed italic text-[10px] sm:text-[11px] font-medium line-clamp-3 min-h-[48px]">
       &quot;{t.content}&quot;
     </p>
 
@@ -92,7 +92,7 @@ const Testimonials = () => {
   const secondRow = testimonials.slice(3, 6);
 
   return (
-    <section className="pt-10 pb-6 md:pt-20 md:pb-12 relative bg-white/[0.01] overflow-hidden">
+    <section className="pt-10 pb-6 md:pt-20 md:pb-12 relative bg-brand-bg overflow-hidden">
       <div className="site-container">
         <div className="text-center mb-8 md:mb-20">
           <h2
@@ -110,7 +110,7 @@ const Testimonials = () => {
 
           <div className="testimonial-marquee">
             <div className="testimonial-marquee-track">
-              {[...firstRow, ...firstRow, ...firstRow].map((t, i) => (
+              {[...firstRow, ...firstRow].map((t, i) => (
                 <div key={`row-1-${i}`} className="mx-2 sm:mx-3 md:mx-4 w-[220px] sm:w-[260px] md:w-[320px] lg:w-[360px] shrink-0">
                   <TestimonialCard t={t} i={i} />
                 </div>
@@ -120,7 +120,7 @@ const Testimonials = () => {
 
           <div className="testimonial-marquee">
             <div className="testimonial-marquee-track testimonial-marquee-track-reverse">
-              {[...secondRow, ...secondRow, ...secondRow].map((t, i) => (
+              {[...secondRow, ...secondRow].map((t, i) => (
                 <div key={`row-2-${i}`} className="mx-2 sm:mx-3 md:mx-4 w-[220px] sm:w-[260px] md:w-[320px] lg:w-[360px] shrink-0">
                   <TestimonialCard t={t} i={i} />
                 </div>

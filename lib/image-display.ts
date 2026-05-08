@@ -22,6 +22,10 @@ const DEFAULT_MEDIA_PATHS = [
 ];
 
 const DEFAULT_STRING_PATHS = [
+  'publicUrl',
+  'publicPath',
+  'protectedPath',
+  'apiPath',
   'imageUrl',
   'coverImageUrl',
   'thumbnailUrl',
@@ -29,12 +33,9 @@ const DEFAULT_STRING_PATHS = [
   'image',
   'fileUrl',
   'url',
-  'publicUrl',
-  'publicPath',
-  'protectedPath',
-  'apiPath',
   'attachmentUrl',
   'src',
+  'path',
   'storagePath',
 ];
 
@@ -122,6 +123,8 @@ export function getMediaUrl(media: unknown): string {
   const explicitPublicPath =
     toTrimmedString(dictionary.publicUrl) || toTrimmedString(dictionary.publicPath);
   const explicitUrl =
+    toTrimmedString(dictionary.image) ||
+    toTrimmedString(dictionary.thumbnail) ||
     toTrimmedString(dictionary.fileUrl) ||
     toTrimmedString(dictionary.url) ||
     toTrimmedString(dictionary.attachmentUrl) ||

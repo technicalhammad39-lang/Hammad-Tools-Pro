@@ -44,7 +44,7 @@ import {
   type BlogPostDocument,
 } from '@/lib/blog';
 import type { StoredFileMetadata } from '@/lib/types/domain';
-import { resolveImageSource } from '@/lib/image-display';
+import { resolveImageSource, resolveStoredMediaUrl } from '@/lib/image-display';
 import { getRichTextLength, normalizeRichTextValue } from '@/lib/rich-text';
 
 type BlogFormState = {
@@ -585,14 +585,15 @@ export default function BlogCMSPage() {
         <MediaLibraryModal
           open={isMediaLibraryOpen}
           onClose={() => setIsMediaLibraryOpen(false)}
-          allowDelete
-          onSelect={(media) => {
-            setFormData((prev) => ({
-              ...prev,
-              coverImageUrl: media.url,
-              coverImageMedia: toStorageMetadataFromLibrary(media),
-            }));
-          }}
+            allowDelete
+            onSelect={(media) => {
+              const resolvedImage = resolveStoredMediaUrl(media) || media.url;
+              setFormData((prev) => ({
+                ...prev,
+                coverImageUrl: resolvedImage,
+                coverImageMedia: toStorageMetadataFromLibrary(media),
+              }));
+            }}
           folder="blogs"
           includeFolders={['tools', 'blogs', 'services']}
           title="Blog Media Library"

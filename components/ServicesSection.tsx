@@ -56,8 +56,11 @@ const ServicesSection = () => {
     active: false,
     startX: 0,
     scrollLeft: 0,
+    maxDistance: 0,
+    hasDragged: false,
     suppressClickUntil: 0,
   });
+  const categoryDragThreshold = 10;
 
   useEffect(() => {
     let mounted = true;
@@ -138,9 +141,10 @@ const ServicesSection = () => {
       active: true,
       startX: event.clientX,
       scrollLeft: scroller.scrollLeft,
+      maxDistance: 0,
+      hasDragged: false,
       suppressClickUntil: categoryDragRef.current.suppressClickUntil,
     };
-    scroller.setPointerCapture(event.pointerId);
   };
 
   const handleCategoryPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
@@ -151,7 +155,16 @@ const ServicesSection = () => {
     }
 
     const deltaX = event.clientX - state.startX;
-    if (Math.abs(deltaX) > 4) {
+    state.maxDistance = Math.max(state.maxDistance, Math.abs(deltaX));
+    if (!state.hasDragged && state.maxDistance < categoryDragThreshold) {
+      return;
+    }
+
+    if (!state.hasDragged) {
+      if (!scroller.hasPointerCapture(event.pointerId)) {
+        scroller.setPointerCapture(event.pointerId);
+      }
+      state.hasDragged = true;
       state.suppressClickUntil = performance.now() + 180;
     }
     scroller.scrollLeft = state.scrollLeft - deltaX;
@@ -161,6 +174,9 @@ const ServicesSection = () => {
     const scroller = categoryScrollerRef.current;
     if (categoryDragRef.current.active && scroller?.hasPointerCapture(event.pointerId)) {
       scroller.releasePointerCapture(event.pointerId);
+    }
+    if (categoryDragRef.current.hasDragged) {
+      categoryDragRef.current.suppressClickUntil = performance.now() + 180;
     }
     categoryDragRef.current.active = false;
   };

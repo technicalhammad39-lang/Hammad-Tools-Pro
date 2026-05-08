@@ -157,6 +157,40 @@ function transformSpanLikeAttributes(attribs: Record<string, string>) {
   return nextAttribs;
 }
 
+function resolveStyledInlineTag(attribs: Record<string, string>) {
+  const styles = parseStyleMap(String(attribs.style || ''));
+  const hasColorOrSize = Boolean(
+    normalizeRichColor(String(attribs['data-rich-color'] || '')) ||
+      normalizeRichColor(String(attribs.color || '')) ||
+      normalizeRichColor(styles.color || '') ||
+      normalizeRichSize(String(attribs['data-rich-size'] || '')) ||
+      normalizeRichSize(String(attribs.size || '')) ||
+      normalizeRichSize(styles['font-size'] || '')
+  );
+
+  if (hasColorOrSize) {
+    return '';
+  }
+
+  const fontWeight = String(styles['font-weight'] || '').toLowerCase();
+  const fontStyle = String(styles['font-style'] || '').toLowerCase();
+  const textDecoration = `${styles['text-decoration'] || ''} ${styles['text-decoration-line'] || ''}`.toLowerCase();
+
+  if (fontWeight === 'bold' || fontWeight === 'bolder' || Number(fontWeight) >= 600) {
+    return 'strong';
+  }
+
+  if (fontStyle === 'italic' || fontStyle === 'oblique') {
+    return 'em';
+  }
+
+  if (textDecoration.includes('underline')) {
+    return 'u';
+  }
+
+  return '';
+}
+
 function transformAnchorAttributes(attribs: Record<string, string>) {
   const normalizedHref = sanitizeBlogHref(normalizeBlogEditorUrl(String(attribs.href || '')));
   const isExternal = isExternalBlogHref(normalizedHref);
@@ -372,10 +406,20 @@ const SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
       tagName: 'span',
       attribs: transformSpanLikeAttributes(attribs),
     }),
-    span: (_tagName, attribs) => ({
-      tagName: 'span',
-      attribs: transformSpanLikeAttributes(attribs),
-    }),
+    span: (_tagName, attribs) => {
+      const inlineTag = resolveStyledInlineTag(attribs);
+      if (inlineTag) {
+        return {
+          tagName: inlineTag,
+          attribs: {},
+        };
+      }
+
+      return {
+        tagName: 'span',
+        attribs: transformSpanLikeAttributes(attribs),
+      };
+    },
     a: (_tagName, attribs) => ({
       tagName: 'a',
       attribs: transformAnchorAttributes(attribs),

@@ -20,7 +20,7 @@ import type { Category, CategoryType } from '@/lib/types/domain';
 import { deleteUploadedMedia, toStorageMetadataFromLibrary } from '@/lib/storage-utils';
 import { logFirestoreSaveFailure, sanitizeForFirestore } from '@/lib/firestore-sanitize';
 import { useToast } from '@/components/ToastProvider';
-import { resolveImageSource } from '@/lib/image-display';
+import { resolveImageSource, resolveStoredMediaUrl } from '@/lib/image-display';
 import UploadedImage from '@/components/UploadedImage';
 import MediaLibraryModal from '@/components/MediaLibraryModal';
 
@@ -419,9 +419,10 @@ export default function AdminCategoriesPage() {
         onClose={() => setIsMediaLibraryOpen(false)}
         allowDelete
         onSelect={(media) => {
+          const resolvedImage = resolveStoredMediaUrl(media) || media.url;
           setForm((prev) => ({
             ...prev,
-            imageUrl: media.url,
+            imageUrl: resolvedImage,
             imageMedia: toStorageMetadataFromLibrary(media),
           }));
         }}
