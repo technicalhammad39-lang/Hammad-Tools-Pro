@@ -22,7 +22,7 @@ interface AgencyService {
 }
 
 function getTitle(service: AgencyService) {
-  return service.title || 'Untitled Service';
+  return (service.title || 'Untitled Service').replace(/\s+/g, ' ').trim();
 }
 
 function getServiceSlug(service: AgencyService) {
@@ -132,7 +132,7 @@ export default function AgencyServicesPage() {
             <p className="text-brand-text/40 text-[10px] font-black uppercase tracking-widest">Add services from admin panel to show them here.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-7">
             {filteredServices.map((service, index) => {
               const title = getTitle(service);
               const serviceSlug = getServiceSlug(service);
@@ -146,43 +146,43 @@ export default function AgencyServicesPage() {
                 <div
                   key={service.id}
                   data-gsap-reveal="gsap"
-                  className="group relative flex flex-col h-full bg-brand-soft/20 backdrop-blur-3xl border border-white/5 rounded-[2rem] overflow-hidden hover:border-primary/30 transition-all duration-700 hover:shadow-2xl hover:shadow-primary/5 hover:-translate-y-1"
+                  className="group relative flex flex-col h-full bg-brand-soft/20 backdrop-blur-2xl border border-white/10 rounded-2xl overflow-hidden hover:border-primary/30 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/5 hover:-translate-y-1"
                   style={{ transitionDelay: `${Math.min(index * 25, 220)}ms` }}
                 >
-                  <div className="relative aspect-[16/10] md:aspect-[4/3] overflow-hidden bg-[#0E0E0E]">
+                  <div className="relative aspect-[16/10] overflow-hidden bg-[#0E0E0E]">
                     <Link href={serviceHref} className="absolute inset-0 block" aria-label={`Open ${title}`}>
                       <UploadedImage
                         src={thumbnailSrc}
                         fallbackSrc="/services-card.webp"
                         alt={title}
-                        className="absolute inset-0 w-full h-full object-cover md:object-contain group-hover:scale-105 transition-transform duration-1000 p-0 md:p-4 rounded-[2.5rem]"
+                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.035]"
                         referrerPolicy="no-referrer"
                       />
                     </Link>
-                    <div className="absolute inset-0 bg-gradient-to-t from-brand-bg/90 via-transparent to-transparent opacity-75 pointer-events-none" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-brand-bg/88 via-transparent to-transparent opacity-70 pointer-events-none" />
                     <div className="absolute top-4 left-4 right-4 flex justify-between items-start pointer-events-none">
-                      <div className="bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10 flex items-center gap-1.5">
+                      <div className="bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10 flex items-center gap-1.5">
                         <Star className="w-3 h-3 text-primary fill-primary" />
                         <span className="text-[8px] font-black uppercase text-white/80">Premium</span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="p-6 md:p-8 flex flex-col flex-1">
+                  <div className="p-5 md:p-6 flex flex-col flex-1">
                     <Link href={serviceHref} className="block">
-                      <h3 className="text-2xl md:text-3xl font-black text-brand-text leading-tight mb-4 group-hover:text-primary transition-colors break-words line-clamp-2 min-h-[2.3em]">
+                      <h3 className="text-xl md:text-2xl font-black text-brand-text leading-tight mb-3 group-hover:text-primary transition-colors break-words line-clamp-2 min-h-[2.35em]">
                         {title}
                       </h3>
                     </Link>
 
-                    <p className="text-brand-text/40 text-xs md:text-sm font-medium leading-relaxed mb-6 line-clamp-3 italic min-h-[4.2em]">
+                    <p className="text-brand-text/48 text-xs md:text-sm font-medium leading-relaxed mb-5 line-clamp-3 min-h-[4.2em]">
                       {service.description || 'Contact us for this service.'}
                     </p>
 
                     {Array.isArray(service.tags) && service.tags.length ? (
                       <div className="flex flex-wrap gap-2 mb-6">
                         {service.tags.slice(0, 4).map((tag) => (
-                          <span key={tag} className="text-[9px] font-black tracking-widest text-brand-text/40 border border-white/10 px-2 py-1 rounded-md flex items-center gap-1 break-words">
+                          <span key={tag} className="text-[9px] font-black tracking-widest text-brand-text/45 border border-white/10 px-2 py-1 rounded-md flex items-center gap-1 break-words">
                             <Tag className="w-3 h-3 text-primary" /> {tag}
                           </span>
                         ))}
@@ -207,7 +207,7 @@ export default function AgencyServicesPage() {
                             window.open(url, '_blank', 'noopener,noreferrer');
                           }
                         }}
-                        className="w-full bg-primary text-black py-4 rounded-[1.5rem] font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-3 hover:bg-primary/90 transition-all shadow-xl group/btn border-b-4 border-secondary"
+                        className="w-full bg-primary text-black py-3.5 rounded-xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-3 hover:bg-primary/90 transition-all shadow-xl group/btn border-b-4 border-secondary"
                       >
                         <span>Request Service</span>
                         <ArrowRight className="w-3.5 h-3.5 ml-1 group-hover/btn:translate-x-1 transition-transform" />

@@ -240,28 +240,68 @@ select option:checked {
 }
 
 @keyframes heroCardFloatA {
-  0%, 100% { transform: translateY(0) rotate(-5deg); }
-  50% { transform: translateY(-8px) rotate(-5.5deg); }
+  0%, 100% {
+    transform:
+      translate3d(var(--hero-card-a-x, 0px), var(--hero-card-a-y, 0px), 0)
+      rotate(-5deg)
+      rotateX(var(--hero-tilt-x, 0deg))
+      rotateY(var(--hero-tilt-y, 0deg));
+  }
+  50% {
+    transform:
+      translate3d(var(--hero-card-a-x, 0px), calc(-10px + var(--hero-card-a-y, 0px)), 0)
+      rotate(-6deg)
+      rotateX(var(--hero-tilt-x, 0deg))
+      rotateY(var(--hero-tilt-y, 0deg));
+  }
 }
 
 @keyframes heroCardFloatB {
-  0%, 100% { transform: translateY(0) rotate(5deg); }
-  50% { transform: translateY(8px) rotate(5.5deg); }
+  0%, 100% {
+    transform:
+      translate3d(var(--hero-card-b-x, 0px), var(--hero-card-b-y, 0px), 0)
+      rotate(5deg)
+      rotateX(var(--hero-tilt-b-x, 0deg))
+      rotateY(var(--hero-tilt-b-y, 0deg));
+  }
+  50% {
+    transform:
+      translate3d(var(--hero-card-b-x, 0px), calc(10px + var(--hero-card-b-y, 0px)), 0)
+      rotate(6deg)
+      rotateX(var(--hero-tilt-b-x, 0deg))
+      rotateY(var(--hero-tilt-b-y, 0deg));
+  }
 }
 
 @keyframes heroCursorFloat {
-  0%, 100% { transform: translate3d(-34px, -18px, 0); }
-  50% { transform: translate3d(34px, 18px, 0); }
+  0%, 100% { transform: translate3d(calc(-34px + var(--hero-cursor-x, 0px)), calc(-18px + var(--hero-cursor-y, 0px)), 0) rotate(-12deg); }
+  50% { transform: translate3d(calc(34px + var(--hero-cursor-x, 0px)), calc(18px + var(--hero-cursor-y, 0px)), 0) rotate(7deg); }
+}
+
+.hero-review-stage {
+  perspective: 980px;
+  --hero-card-a-x: 0px;
+  --hero-card-a-y: 0px;
+  --hero-card-b-x: 0px;
+  --hero-card-b-y: 0px;
+  --hero-tilt-x: 0deg;
+  --hero-tilt-y: 0deg;
+  --hero-tilt-b-x: 0deg;
+  --hero-tilt-b-y: 0deg;
+  --hero-cursor-x: 0px;
+  --hero-cursor-y: 0px;
 }
 
 .hero-floating-card-a {
-  animation: heroCardFloatA 5s ease-in-out infinite;
+  animation: heroCardFloatA 4.8s ease-in-out infinite;
+  transform-style: preserve-3d;
   will-change: transform;
 }
 
 .hero-floating-card-b {
-  animation: heroCardFloatB 6s ease-in-out infinite;
+  animation: heroCardFloatB 5.8s ease-in-out infinite;
   animation-delay: 0.5s;
+  transform-style: preserve-3d;
   will-change: transform;
 }
 
@@ -623,6 +663,12 @@ select option:checked {
 @media (max-width: 1279px) {
   .mobile-nav-clean {
     border: none;
+  }
+}
+
+@media (max-width: 380px) {
+  .navbar-brand-text {
+    display: none;
   }
 }
 

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useRef } from 'react';
-import { Bold, Italic, Link as LinkIcon, Type, Underline } from 'lucide-react';
+import { Bold, Eraser, Italic, Link as LinkIcon, Type, Underline } from 'lucide-react';
 import { normalizeBlogEditorUrl, sanitizeBlogHref } from '@/lib/blog-links';
 import {
   getRichTextLength,
@@ -56,6 +56,15 @@ function moveCaretToEnd(editor: HTMLDivElement) {
   range.collapse(false);
   selection?.removeAllRanges();
   selection?.addRange(range);
+}
+
+function plainTextToEditorHtml(value: string) {
+  const lines = value.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
+  const blocks = lines
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => `<p>${escapeHtml(line)}</p>`);
+  return blocks.join('') || EMPTY_EDITOR_HTML;
 }
 
 export default function RichTextEditor({
@@ -161,6 +170,24 @@ export default function RichTextEditor({
     emitChange({ keepFocus: true });
   }
 
+  function clearFormatting() {
+    const editor = focusEditor();
+    if (!editor) {
+      return;
+    }
+
+    const selection = window.getSelection();
+    if (selection && selection.rangeCount > 0 && selectionBelongsToEditor(editor) && !selection.isCollapsed) {
+      document.execCommand('insertText', false, selection.toString());
+      emitChange({ normalizeDom: true, keepFocus: true });
+      return;
+    }
+
+    const plainText = editor.innerText || '';
+    editor.innerHTML = plainTextToEditorHtml(plainText);
+    emitChange({ normalizeDom: true, keepFocus: true });
+  }
+
   function handlePaste(event: React.ClipboardEvent<HTMLDivElement>) {
     event.preventDefault();
     const pastedText = event.clipboardData.getData('text/plain');
@@ -238,6 +265,17 @@ export default function RichTextEditor({
           title="Insert link"
         >
           <LinkIcon className="h-4 w-4" />
+        </button>
+        <button
+          type="button"
+          onMouseDown={(event) => {
+            event.preventDefault();
+            clearFormatting();
+          }}
+          className="grid h-8 w-8 place-items-center rounded-lg border border-white/10 bg-white/[0.03] text-brand-text/70 hover:border-primary/35 hover:text-primary"
+          title="Normal / clear formatting"
+        >
+          <Eraser className="h-4 w-4" />
         </button>
 
         <div className="mx-1 h-6 w-px bg-white/10" />

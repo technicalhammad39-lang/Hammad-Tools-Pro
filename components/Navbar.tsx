@@ -164,9 +164,9 @@ const Navbar = () => {
   return (
     <nav className="fixed top-[var(--promo-ticker-height)] left-0 right-0 z-[100] glass mobile-nav-clean py-2.5">
       <div className="site-container">
-        <div className="flex justify-between items-center">
-          <Link href="/" className="flex items-center space-x-3 transition-transform hover:scale-105 active:scale-95 group">
-            <div className="relative h-10 w-10 sm:h-11 sm:w-11">
+        <div className="flex items-center justify-between gap-2">
+          <Link href="/" className="flex min-w-0 items-center gap-2.5 transition-transform hover:scale-105 active:scale-95 group sm:gap-3">
+            <div className="relative h-10 w-10 shrink-0 sm:h-11 sm:w-11">
               <Image 
                 src="/logo-header.png" 
                 alt="Hammad Tools Logo" 
@@ -175,7 +175,7 @@ const Navbar = () => {
                 priority
               />
             </div>
-            <span className="text-lg sm:text-xl 2xl:text-2xl font-black text-brand-text uppercase leading-none tracking-[0.03em]">
+            <span className="navbar-brand-text truncate text-base sm:text-xl 2xl:text-2xl font-black text-brand-text uppercase leading-none tracking-[0.03em]">
               Hammad<span className="internal-gradient">Tools</span>
             </span>
           </Link>
@@ -239,21 +239,22 @@ const Navbar = () => {
           </div>
 
           {/* Mobile Menu Button */}
-          <div className="xl:hidden flex items-center space-x-4">
+          <div className="xl:hidden ml-1 flex shrink-0 items-center gap-1.5 sm:gap-2">
             <button
               onClick={() => setSearchOpen((prev) => !prev)}
-              className="p-2 text-brand-text/40"
+              className="grid h-9 w-9 place-items-center rounded-lg text-brand-text/50 hover:bg-white/5 hover:text-primary"
               aria-label="Open search"
             >
-              <Search className="w-6 h-6" />
+              <Search className="w-5 h-5" />
             </button>
             <button 
               onClick={() => setIsCartOpen(true)}
-              className="relative p-2 text-brand-text/40"
+              className="relative grid h-9 w-9 place-items-center rounded-lg text-brand-text/50 hover:bg-white/5 hover:text-primary"
+              aria-label="Open cart"
             >
-              <ShoppingBag className="w-6 h-6" />
+              <ShoppingBag className="w-5 h-5" />
               {totalItems > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-primary text-brand-bg text-[10px] font-black rounded-full flex items-center justify-center border border-[#FF8C2A]">
+                <span className="absolute -right-1 -top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full border border-[#FF8C2A] bg-primary px-1 text-[9px] font-black text-brand-bg">
                   {totalItems}
                 </span>
               )}
@@ -261,7 +262,7 @@ const Navbar = () => {
             <button
               onClick={() => setIsOpen(!isOpen)}
               data-open={isOpen ? 'true' : 'false'}
-              className="mobile-menu-toggle text-brand-text/40 p-2 relative w-10 h-10"
+              className="mobile-menu-toggle relative grid h-9 w-9 place-items-center rounded-lg text-brand-text/50 hover:bg-white/5 hover:text-primary"
               aria-label={isOpen ? 'Close menu' : 'Open menu'}
             >
               <Menu className="mobile-menu-icon mobile-menu-icon-open absolute inset-0 m-auto" />

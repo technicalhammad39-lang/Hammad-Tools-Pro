@@ -22,6 +22,35 @@ const Hero = () => {
     '/reviews/4-rev4.png',
   ];
 
+  function handleReviewPointerMove(event: React.PointerEvent<HTMLDivElement>) {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = ((event.clientX - rect.left) / rect.width - 0.5) * 2;
+    const y = ((event.clientY - rect.top) / rect.height - 0.5) * 2;
+    event.currentTarget.style.setProperty('--hero-card-a-x', `${x * -4.5}px`);
+    event.currentTarget.style.setProperty('--hero-card-a-y', `${y * -3.5}px`);
+    event.currentTarget.style.setProperty('--hero-card-b-x', `${x * 3.5}px`);
+    event.currentTarget.style.setProperty('--hero-card-b-y', `${y * 4}px`);
+    event.currentTarget.style.setProperty('--hero-tilt-x', `${y * -4}deg`);
+    event.currentTarget.style.setProperty('--hero-tilt-y', `${x * 4}deg`);
+    event.currentTarget.style.setProperty('--hero-tilt-b-x', `${y * 3.2}deg`);
+    event.currentTarget.style.setProperty('--hero-tilt-b-y', `${x * -3.2}deg`);
+    event.currentTarget.style.setProperty('--hero-cursor-x', `${x * 52}px`);
+    event.currentTarget.style.setProperty('--hero-cursor-y', `${y * 36}px`);
+  }
+
+  function handleReviewPointerLeave(event: React.PointerEvent<HTMLDivElement>) {
+    event.currentTarget.style.setProperty('--hero-card-a-x', '0px');
+    event.currentTarget.style.setProperty('--hero-card-a-y', '0px');
+    event.currentTarget.style.setProperty('--hero-card-b-x', '0px');
+    event.currentTarget.style.setProperty('--hero-card-b-y', '0px');
+    event.currentTarget.style.setProperty('--hero-tilt-x', '0deg');
+    event.currentTarget.style.setProperty('--hero-tilt-y', '0deg');
+    event.currentTarget.style.setProperty('--hero-tilt-b-x', '0deg');
+    event.currentTarget.style.setProperty('--hero-tilt-b-y', '0deg');
+    event.currentTarget.style.setProperty('--hero-cursor-x', '0px');
+    event.currentTarget.style.setProperty('--hero-cursor-y', '0px');
+  }
+
   React.useEffect(() => {
     const mediaQuery = window.matchMedia('(min-width: 1024px)');
     const sync = () => setShowDesktopVideo(mediaQuery.matches);
@@ -194,12 +223,13 @@ const Hero = () => {
             data-gsap-reveal="gsap"
             data-gsap-immediate="true"
             data-gsap-skip="true"
-            className="relative z-10 hidden lg:flex justify-center items-center h-[530px]"
+            onPointerMove={handleReviewPointerMove}
+            onPointerLeave={handleReviewPointerLeave}
+            className="hero-review-stage relative z-10 hidden lg:flex justify-center items-center h-[530px]"
           >
             {/* Review Card 1 (Darker Yellow) */}
             <div
               className="absolute top-20 right-0 z-20 bg-gradient-to-br from-[#5C5000] to-[#121212] p-8 rounded-[2rem] w-80 border border-primary/20 shadow-2xl hero-floating-card-a"
-              style={{ transform: 'translateY(0) rotate(-5deg)' }}
             >
               <Quote className="text-primary w-10 h-10 mb-4 opacity-30" />
               <p className="text-lg font-black mb-6 leading-tight text-brand-text">
@@ -224,7 +254,6 @@ const Hero = () => {
             {/* Review Card 2 */}
             <div
               className="absolute bottom-20 left-0 z-10 bg-gradient-to-bl from-[#FF8C2A]/20 to-[#1A1A1A] p-8 rounded-[2rem] w-80 border border-secondary/10 shadow-2xl hero-floating-card-b"
-              style={{ transform: 'translateY(0) rotate(5deg)' }}
             >
               <Quote className="text-secondary w-10 h-10 mb-4 opacity-30" />
               <p className="text-lg font-black mb-6 leading-tight text-brand-text">

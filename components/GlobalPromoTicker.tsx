@@ -17,6 +17,7 @@ import {
 } from '@/lib/coupons';
 
 const FIRE = '\uD83D\uDD25';
+const TICKER_HIDE_MS = 60 * 1000;
 
 export interface PromoCouponData {
   code: string;
@@ -52,17 +53,22 @@ function normalizeCategoryTarget(name: string) {
   return value.replace(/\s+tools?\s*$/i, '').trim() || value;
 }
 
+function getDiscountLabel(data: CouponRecord) {
+  const percent = Math.max(0, Number(data.discountPercentage || 0));
+  return percent > 0 ? `${percent}% OFF` : 'SPECIAL DISCOUNT';
+}
+
 function getPromoText(data: CouponRecord) {
   const targetName = getCouponDisplayTitle(data);
-  const discount = data.discountPercentage ? `${data.discountPercentage}% ` : '';
+  const discount = getDiscountLabel(data);
   if (data.scope === 'product') {
-    return `${FIRE} Exclusive Discount: Get ${targetName} now! Use Coupon: ${data.code}`;
+    return `${FIRE} Exclusive Deal: ${discount} on ${targetName}. Use: ${data.code}`;
   }
   if (data.scope === 'category') {
     const categoryTarget = normalizeCategoryTarget(targetName);
-    return `${FIRE} Category Sale: ${discount}off ${categoryTarget} tools. Use: ${data.code}`;
+    return `${FIRE} Category Sale: ${discount} on ${categoryTarget} tools. Use: ${data.code}`;
   }
-  return `${FIRE} Sitewide Deal: ${discount}off premium tools. Use: ${data.code}`;
+  return `${FIRE} Sitewide Deal: ${discount} on premium tools. Use: ${data.code}`;
 }
 
 function mapPropCoupon(input: PromoCouponData): CouponRecord | null {
@@ -90,11 +96,12 @@ export default function GlobalPromoTicker({ couponData }: { couponData?: PromoCo
     [pathname]
   );
   const [productRouteContext, setProductRouteContext] = useState<CouponRouteContext | null>(null);
-  const [hiddenForSession, setHiddenForSession] = useState(false);
+  const [hiddenTickerKey, setHiddenTickerKey] = useState('');
   const [nowMs, setNowMs] = useState(() => Date.now());
   const [copied, setCopied] = useState(false);
   const rootRef = useRef<HTMLDivElement | null>(null);
   const copiedTimeoutRef = useRef<number | null>(null);
+  const hideTimeoutRef = useRef<number | null>(null);
 
   const isAdminRoute = pathname.startsWith('/admin');
   const routeContext =
@@ -161,11 +168,13 @@ export default function GlobalPromoTicker({ couponData }: { couponData?: PromoCo
   }, [isAdminRoute, couponData, routeContext]);
 
   const activeCoupon = couponData ? mapPropCoupon(couponData) : liveCoupon;
-  const shouldTick = !isAdminRoute && !hiddenForSession && Boolean(activeCoupon);
+  const tickerKey = activeCoupon ? `${pathname || '/'}:${activeCoupon.code}` : '';
+  const isTickerHidden = Boolean(tickerKey && hiddenTickerKey === tickerKey);
+  const shouldTick = !isAdminRoute && !isTickerHidden && Boolean(activeCoupon);
   const expiryMs = toMillis(activeCoupon?.expiryDate);
   const msRemaining = expiryMs - nowMs;
   const isExpired = !activeCoupon || (Boolean(expiryMs) && msRemaining <= 0);
-  const shouldRender = !isAdminRoute && !hiddenForSession && !isExpired;
+  const shouldRender = !isAdminRoute && !isTickerHidden && !isExpired;
 
   useEffect(() => {
     if (!shouldTick) {
@@ -182,6 +191,9 @@ export default function GlobalPromoTicker({ couponData }: { couponData?: PromoCo
     return () => {
       if (copiedTimeoutRef.current) {
         window.clearTimeout(copiedTimeoutRef.current);
+      }
+      if (hideTimeoutRef.current) {
+        window.clearTimeout(hideTimeoutRef.current);
       }
     };
   }, []);
@@ -212,6 +224,7 @@ export default function GlobalPromoTicker({ couponData }: { couponData?: PromoCo
   const couponCode = activeCoupon.code;
   const promoText = getPromoText(activeCoupon);
   const countdown = expiryMs ? formatCountdown(msRemaining) : 'LIMITED';
+  const discountLabel = getDiscountLabel(activeCoupon);
 
   async function handleCopyCode() {
     try {
@@ -231,7 +244,18 @@ export default function GlobalPromoTicker({ couponData }: { couponData?: PromoCo
   }
 
   function handleClose() {
-    setHiddenForSession(true);
+    const currentKey = tickerKey;
+    if (!currentKey) {
+      return;
+    }
+    setHiddenTickerKey(currentKey);
+    if (hideTimeoutRef.current) {
+      window.clearTimeout(hideTimeoutRef.current);
+    }
+    hideTimeoutRef.current = window.setTimeout(() => {
+      setHiddenTickerKey((previousKey) => (previousKey === currentKey ? '' : previousKey));
+      hideTimeoutRef.current = null;
+    }, TICKER_HIDE_MS);
   }
 
   return (
@@ -243,6 +267,9 @@ export default function GlobalPromoTicker({ couponData }: { couponData?: PromoCo
         <div className="relative grid grid-cols-[1fr_auto] items-center gap-2">
           <div className="min-w-0">
             <div className="hidden md:flex items-center justify-center gap-3 text-center">
+              <span className="shrink-0 rounded-md bg-black px-3 py-1 text-[11px] font-black tracking-widest text-[#FFCC00] lg:text-[12px]">
+                {discountLabel}
+              </span>
               <p className="truncate text-[14px] font-black text-black lg:text-[16px]">{promoText}</p>
               <span className="shrink-0 rounded-md bg-black/90 px-3 py-1 text-[11px] font-black tabular-nums text-[#FFCC00] lg:text-[12px]">
                 {FIRE} {countdown}
@@ -251,9 +278,15 @@ export default function GlobalPromoTicker({ couponData }: { couponData?: PromoCo
 
             <div className="overflow-hidden whitespace-nowrap md:hidden">
               <div className="promo-marquee-track inline-flex items-center gap-6 pr-6">
+                <span className="rounded-md bg-black px-2.5 py-1 text-[11px] font-black tracking-widest text-[#FFCC00]">
+                  {discountLabel}
+                </span>
                 <span className="text-[13px] font-black text-black">{promoText}</span>
                 <span className="rounded-md bg-black/90 px-2.5 py-1 text-[11px] font-black tabular-nums text-[#FFCC00]">
                   {FIRE} {countdown}
+                </span>
+                <span className="rounded-md bg-black px-2.5 py-1 text-[11px] font-black tracking-widest text-[#FFCC00]">
+                  {discountLabel}
                 </span>
                 <span className="text-[13px] font-black text-black">{promoText}</span>
                 <span className="rounded-md bg-black/90 px-2.5 py-1 text-[11px] font-black tabular-nums text-[#FFCC00]">
