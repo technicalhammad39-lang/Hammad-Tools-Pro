@@ -89,7 +89,7 @@ const Hero = () => {
   }, [activePhraseIndex, isDeletingPhrase, typedPhrase]);
 
   return (
-    <section className="relative flex w-full flex-col items-center justify-start overflow-hidden pt-[calc(var(--promo-ticker-height)+var(--navbar-height)+0.75rem)] pb-8 sm:pt-[calc(var(--promo-ticker-height)+var(--navbar-height)+1rem)] sm:pb-10 md:min-h-[72svh] md:justify-center md:pb-10 lg:min-h-[88dvh] lg:pt-[calc(var(--promo-ticker-height)+var(--navbar-height)+1rem)] lg:pb-2">
+    <section className="home-hero-section relative flex w-full flex-col items-center justify-start overflow-hidden pt-[calc(var(--promo-ticker-height)+var(--navbar-height)+0.75rem)] pb-8 sm:pt-[calc(var(--promo-ticker-height)+var(--navbar-height)+1rem)] sm:pb-10 md:min-h-[72svh] md:justify-center md:pb-10 lg:min-h-[88dvh] lg:pt-[calc(var(--promo-ticker-height)+var(--navbar-height)+1rem)] lg:pb-2">
       {/* Background Layer */}
       <div className="absolute inset-0 z-0 overflow-hidden">
         {showDesktopVideo ? (
@@ -113,12 +113,12 @@ const Hero = () => {
       </div>
 
       <div className="site-container-wide w-full relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.14fr)_minmax(0,0.86fr)] gap-6 sm:gap-7 md:gap-8 lg:gap-9 xl:gap-11 items-center">
+        <div className="home-hero-grid grid grid-cols-1 lg:grid-cols-[minmax(0,1.14fr)_minmax(0,0.86fr)] gap-6 sm:gap-7 md:gap-8 lg:gap-9 xl:gap-11 items-center">
           <div
             data-gsap-reveal="gsap"
             data-gsap-immediate="true"
             data-gsap-skip="true"
-            className="relative z-20 md:w-full md:max-w-4xl md:mx-auto md:flex md:flex-col md:items-center md:text-center lg:items-start lg:text-left lg:mx-0 lg:max-w-none"
+            className="home-hero-copy relative z-20 md:w-full md:max-w-4xl md:mx-auto md:flex md:flex-col md:items-center md:text-center lg:items-start lg:text-left lg:mx-0 lg:max-w-none"
           >
             <h1 className="mb-3 text-brand-text text-left md:mb-5 md:text-center lg:text-left">
               <span className="block text-[clamp(1.95rem,8.3vw,2.85rem)] md:text-[clamp(2.6rem,5.4vw,4.65rem)] font-serif font-bold md:font-extrabold italic text-white leading-[1.03]">
@@ -128,13 +128,13 @@ const Hero = () => {
                 <span
                   aria-hidden="true"
                   style={{ fontFamily: 'var(--font-display)' }}
-                  className="invisible block w-max md:mx-auto lg:mx-0 text-[clamp(3.25rem,14.2vw,5.65rem)] sm:text-[clamp(3.55rem,12vw,6rem)] md:text-[clamp(4rem,8.4vw,7.1rem)] lg:text-[clamp(4.4rem,6.9vw,7rem)] font-black uppercase leading-[0.98] tracking-[0.006em] whitespace-nowrap"
+                  className="home-hero-dynamic-ghost invisible block w-max md:mx-auto lg:mx-0 text-[clamp(3.25rem,14.2vw,5.65rem)] sm:text-[clamp(3.55rem,12vw,6rem)] md:text-[clamp(4rem,8.4vw,7.1rem)] lg:text-[clamp(4.4rem,6.9vw,7rem)] font-black uppercase leading-[0.98] tracking-[0.006em] whitespace-nowrap"
                 >
                   {LONGEST_HERO_PHRASE}
                 </span>
                 <span
                   style={{ fontFamily: 'var(--font-display)' }}
-                  className="absolute inset-0 inline-flex w-max items-end md:mx-auto lg:mx-0 text-[clamp(3.25rem,14.2vw,5.65rem)] sm:text-[clamp(3.55rem,12vw,6rem)] md:text-[clamp(4rem,8.4vw,7.1rem)] lg:text-[clamp(4.4rem,6.9vw,7rem)] font-black bg-gradient-to-b from-[#FFEA00] to-[#FF9500] bg-clip-text text-transparent uppercase leading-[0.98] tracking-[0.006em] whitespace-nowrap"
+                  className="home-hero-dynamic-text absolute inset-0 inline-flex w-max items-end md:mx-auto lg:mx-0 text-[clamp(3.25rem,14.2vw,5.65rem)] sm:text-[clamp(3.55rem,12vw,6rem)] md:text-[clamp(4rem,8.4vw,7.1rem)] lg:text-[clamp(4.4rem,6.9vw,7rem)] font-black bg-gradient-to-b from-[#FFEA00] to-[#FF9500] bg-clip-text text-transparent uppercase leading-[0.98] tracking-[0.006em] whitespace-nowrap"
                 >
                   {typedPhrase || '\u00A0'}
                   <span aria-hidden="true" className="typing-caret ml-1 inline-block h-[0.86em] w-[0.07em] rounded-full bg-[#FFEA00]" />
@@ -160,13 +160,13 @@ const Hero = () => {
               data-gsap-reveal="gsap"
               data-gsap-immediate="true"
               data-gsap-skip="true"
-              className="relative z-20 mx-0 mt-1.5 mb-4 max-w-md text-left text-[12px] font-medium leading-[1.5] text-gray-300/90 sm:max-w-lg sm:text-[13px] md:mx-auto md:mt-3 md:mb-5 md:max-w-3xl md:text-center md:text-xl md:leading-relaxed md:text-brand-text/62 lg:mx-0 lg:text-left"
+              className="home-hero-description relative z-20 mx-0 mt-1.5 mb-4 max-w-md text-left text-[12px] font-medium leading-[1.5] text-gray-300/90 sm:max-w-lg sm:text-[13px] md:mx-auto md:mt-3 md:mb-5 md:max-w-3xl md:text-center md:text-xl md:leading-relaxed md:text-brand-text/62 lg:mx-0 lg:text-left"
             >
               Access Netflix, ChatGPT Plus, Canva Pro, and 50+ other premium content access at unbeatable prices. Fast, secure, and reliable.
             </p>
 
             <div className="w-full md:w-auto">
-              <div className="grid w-full grid-cols-2 gap-2.5 md:gap-3 lg:flex lg:w-auto lg:flex-nowrap lg:items-center lg:justify-start">
+              <div className="home-hero-actions grid w-full grid-cols-2 gap-2.5 md:gap-3 lg:flex lg:w-auto lg:flex-nowrap lg:items-center lg:justify-start">
                 <Link href="/tools" className="col-span-1 w-full lg:w-auto">
                   <button
                     className="w-full h-12 md:h-[52px] lg:h-14 lg:min-w-[182px] xl:min-w-[196px] bg-primary text-brand-bg px-3 md:px-6 rounded-xl font-black flex items-center justify-center gap-2 transition-all border-b-4 border-[#FF8C2A] shadow-xl shadow-primary/10 hover:scale-[1.02] active:scale-[0.98]"
@@ -196,7 +196,7 @@ const Hero = () => {
               </div>
             </div>
 
-            <div className="mt-5 flex flex-row items-center justify-start gap-4 text-left sm:gap-6 md:mt-6 md:justify-center md:text-center lg:justify-start lg:text-left">
+            <div className="home-hero-trust mt-5 flex flex-row items-center justify-start gap-4 text-left sm:gap-6 md:mt-6 md:justify-center md:text-center lg:justify-start lg:text-left">
               <div className="flex -space-x-3 md:-space-x-4">
                 {reviewAvatars.map((avatarSrc, index) => (
                   <div key={avatarSrc} className="w-10 h-10 md:w-12 md:h-12 lg:h-14 lg:w-14 rounded-full border-2 border-brand-bg overflow-hidden shadow-xl relative first:ml-0">
@@ -225,7 +225,7 @@ const Hero = () => {
             data-gsap-skip="true"
             onPointerMove={handleReviewPointerMove}
             onPointerLeave={handleReviewPointerLeave}
-            className="hero-review-stage relative z-10 hidden lg:flex justify-center items-center h-[530px]"
+            className="home-hero-review-stage hero-review-stage relative z-10 hidden lg:flex justify-center items-center h-[530px]"
           >
             {/* Review Card 1 (Darker Yellow) */}
             <div

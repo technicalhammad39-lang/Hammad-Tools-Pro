@@ -310,6 +310,95 @@ select option:checked {
   will-change: transform;
 }
 
+@media (min-width: 768px) and (max-width: 1199px) {
+  .home-hero-section {
+    min-height: auto !important;
+    justify-content: flex-start !important;
+    padding-top: calc(var(--promo-ticker-height) + var(--navbar-height) + clamp(0.8rem, 2.4vw, 1.6rem)) !important;
+    padding-bottom: clamp(2rem, 4vw, 3.25rem) !important;
+  }
+
+  .home-hero-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: clamp(1.25rem, 3vw, 2rem) !important;
+  }
+
+  .home-hero-copy {
+    width: 100% !important;
+    max-width: min(58rem, 100%) !important;
+    margin-inline: auto !important;
+    align-items: center !important;
+    text-align: center !important;
+  }
+
+  .home-hero-copy h1,
+  .home-hero-copy p {
+    text-align: center !important;
+  }
+
+  .home-hero-copy h1 > span:first-child {
+    font-size: clamp(2.75rem, 5.8vw, 4.55rem) !important;
+  }
+
+  .home-hero-dynamic-ghost,
+  .home-hero-dynamic-text {
+    margin-inline: auto !important;
+    font-size: clamp(4.1rem, 8.7vw, 6.85rem) !important;
+  }
+
+  .home-hero-description {
+    max-width: min(48rem, 100%) !important;
+    margin-inline: auto !important;
+    font-size: clamp(1rem, 2vw, 1.25rem) !important;
+    line-height: 1.65 !important;
+  }
+
+  .home-hero-actions {
+    display: flex !important;
+    width: auto !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 0.75rem !important;
+  }
+
+  .home-hero-actions a {
+    width: auto !important;
+  }
+
+  .home-hero-actions button {
+    width: auto !important;
+    min-width: 174px !important;
+    height: 54px !important;
+    padding-inline: 1.35rem !important;
+  }
+
+  .home-hero-trust {
+    justify-content: center !important;
+    text-align: center !important;
+  }
+
+  .home-hero-review-stage {
+    display: none !important;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1199px) and (orientation: landscape) {
+  .home-hero-section {
+    padding-top: calc(var(--promo-ticker-height) + var(--navbar-height) + clamp(0.55rem, 2vh, 1.1rem)) !important;
+    padding-bottom: clamp(1.4rem, 4vh, 2.4rem) !important;
+  }
+
+  .home-hero-copy h1 > span:first-child {
+    font-size: clamp(2.6rem, 5.2vw, 4.35rem) !important;
+  }
+
+  .home-hero-dynamic-ghost,
+  .home-hero-dynamic-text {
+    font-size: clamp(3.8rem, 8vw, 6.45rem) !important;
+  }
+}
+
 .mobile-nav-panel {
   max-height: 0;
   opacity: 0;

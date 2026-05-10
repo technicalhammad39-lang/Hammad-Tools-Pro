@@ -202,6 +202,24 @@ function getOrderCustomerName(order: OrderRecord) {
   return order.userName || '';
 }
 
+function isAgencyOrder(order: OrderRecord | null | undefined) {
+  if (!order) {
+    return false;
+  }
+  const data = order as any;
+  return data.orderType === 'agency_service' || data.source === 'agency_services' || Boolean(data.projectInquiryId);
+}
+
+function agencyBudget(order: OrderRecord) {
+  const data = order as any;
+  return data.budget || data.primaryDuration || getOrderDuration(order) || 'Not specified';
+}
+
+function agencyDetails(order: OrderRecord) {
+  const data = order as any;
+  return data.projectDetails || data.paymentProof?.note || data.latestMessagePreview || '';
+}
+
 function orderPriority(status: string) {
   const normalized = normalizeOrderStatus(status);
   if (normalized === 'pending') {
@@ -358,6 +376,12 @@ export default function AdminOrdersPage() {
         transactionValue(order),
         getOrderPlanLabel(order),
         getOrderDuration(order),
+        (order as any).orderType,
+        (order as any).source,
+        (order as any).selectedService,
+        (order as any).company,
+        (order as any).budget,
+        (order as any).projectDetails,
         ...(order.items || []).map((item) => item.productTitle),
       ]
         .filter(Boolean)
@@ -688,6 +712,9 @@ export default function AdminOrdersPage() {
   const selectedOriginalTotal = selectedOrder ? getOrderOriginalTotal(selectedOrder) : 0;
   const selectedStatus = selectedOrder ? normalizeOrderStatus(selectedOrder.status) : 'pending';
   const selectedOrderIsFinal = selectedOrder ? isFinalizedStatus(selectedOrder.status) : false;
+  const selectedIsAgencyOrder = isAgencyOrder(selectedOrder);
+  const selectedAgencyBudget = selectedOrder ? agencyBudget(selectedOrder) : '';
+  const selectedAgencyDetails = selectedOrder ? agencyDetails(selectedOrder) : '';
   const selectedScreenshotUrl = selectedOrder
     ? withProtectedFileToken(screenshotUrl(selectedOrder), fileAccessToken)
     : '';
@@ -904,10 +931,21 @@ export default function AdminOrdersPage() {
             </div>
           ) : (
             <div className="space-y-4">
-              <section className="rounded-2xl border border-white/10 bg-[#252525] p-4 md:p-5">
+              <section className={`rounded-2xl border p-4 md:p-5 ${
+                selectedIsAgencyOrder
+                  ? 'border-cyan-400/25 bg-cyan-400/[0.06]'
+                  : 'border-white/10 bg-[#252525]'
+              }`}>
                 <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
                   <div className="space-y-2 min-w-0">
-                    <div className="text-[11px] text-brand-text/45">Ordered Item</div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <div className="text-[11px] text-brand-text/45">{selectedIsAgencyOrder ? 'Agency Service Inquiry' : 'Ordered Item'}</div>
+                      {selectedIsAgencyOrder ? (
+                        <span className="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-1 text-[9px] font-black uppercase tracking-widest text-cyan-300">
+                          Agency Order
+                        </span>
+                      ) : null}
+                    </div>
                     <h2 className="text-2xl md:text-[2rem] leading-tight font-semibold text-primary break-words">
                       {selectedProductName || 'N/A'}
                     </h2>
@@ -917,14 +955,17 @@ export default function AdminOrdersPage() {
                       {selectedPlanType ? ` • ${selectedPlanType}` : ''}
                     </div>
                     <div className="text-xs text-brand-text/55 break-words">
-                      Order ID: {getOrderDisplayId(selectedOrder)} • Qty: {getOrderQuantity(selectedOrder)}
+                      Order ID: {getOrderDisplayId(selectedOrder)}
+                      {selectedIsAgencyOrder ? ` • Budget: ${selectedAgencyBudget}` : ` • Qty: ${getOrderQuantity(selectedOrder)}`}
                     </div>
                     <div className="text-xs text-brand-text/45">Created: {formatDateTime(selectedOrder.createdAt)}</div>
                   </div>
 
                   <div className="shrink-0 md:text-right">
-                    <div className="text-[10px] uppercase tracking-widest text-brand-text/40">Total Price</div>
-                    <div className="text-4xl font-black text-primary">Rs {Number(selectedOrder.totalAmount || 0).toFixed(2)}</div>
+                    <div className="text-[10px] uppercase tracking-widest text-brand-text/40">{selectedIsAgencyOrder ? 'Project Budget' : 'Total Price'}</div>
+                    <div className={`text-4xl font-black ${selectedIsAgencyOrder ? 'text-cyan-300' : 'text-primary'}`}>
+                      {selectedIsAgencyOrder ? selectedAgencyBudget : `Rs ${Number(selectedOrder.totalAmount || 0).toFixed(2)}`}
+                    </div>
                     {selectedDiscountAmount > 0 ? (
                       <div className="mt-1 text-xs text-brand-text/50 space-y-0.5">
                         <div className="line-through">Original: Rs {selectedOriginalTotal.toFixed(2)}</div>
@@ -991,6 +1032,30 @@ export default function AdminOrdersPage() {
                     void copyValue(transactionValue(selectedOrder), 'Transaction ID');
                   }}
                 />
+
+                {selectedIsAgencyOrder ? (
+                  <>
+                    <DataField
+                      label="Company"
+                      value={(selectedOrder as any).company || ''}
+                      onCopy={() => {
+                        void copyValue((selectedOrder as any).company || '', 'Company');
+                      }}
+                    />
+                    <DataField
+                      label="Selected Agency Service"
+                      value={(selectedOrder as any).selectedService || selectedProductName}
+                      onCopy={() => {
+                        void copyValue((selectedOrder as any).selectedService || selectedProductName, 'Selected service');
+                      }}
+                      highlight
+                    />
+                    <div className="rounded-xl border border-cyan-400/20 bg-cyan-400/[0.06] p-4">
+                      <div className="mb-2 text-[10px] font-black uppercase tracking-widest text-cyan-300">Project Details</div>
+                      <p className="whitespace-pre-wrap text-sm leading-7 text-brand-text/75">{selectedAgencyDetails || 'No project details provided.'}</p>
+                    </div>
+                  </>
+                ) : null}
 
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 pt-1">
                   <div className="rounded-xl border border-white/10 bg-[#696C71] p-4 min-h-[240px]">
@@ -1068,6 +1133,7 @@ export default function AdminOrdersPage() {
               {filteredOrders.map((order) => {
                 const primary = getPrimaryItem(order);
                 const paymentName = paymentMethodName(order);
+                const agency = isAgencyOrder(order);
                 return (
                   <div
                     key={order.id}
@@ -1081,15 +1147,28 @@ export default function AdminOrdersPage() {
                       }
                     }}
                     className={`w-full text-left px-4 py-4 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${
-                      selectedOrderId === order.id ? 'bg-white/10 border-l-2 border-primary' : 'hover:bg-white/5'
+                      selectedOrderId === order.id
+                        ? agency
+                          ? 'bg-cyan-400/10 border-l-2 border-cyan-300'
+                          : 'bg-white/10 border-l-2 border-primary'
+                        : agency
+                          ? 'hover:bg-cyan-400/[0.06]'
+                          : 'hover:bg-white/5'
                     }`}
                   >
                     <div className="space-y-2">
-                      <div className="text-base font-semibold text-brand-text break-words">
-                        {primary?.productTitle || productSummary(order) || 'No item title'}
+                      <div className="flex flex-wrap items-start justify-between gap-2">
+                        <div className="text-base font-semibold text-brand-text break-words">
+                          {primary?.productTitle || productSummary(order) || 'No item title'}
+                        </div>
+                        {agency ? (
+                          <span className="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-2 py-1 text-[8px] font-black uppercase tracking-widest text-cyan-300">
+                            Agency
+                          </span>
+                        ) : null}
                       </div>
                       <div className="text-[11px] text-brand-text/65 break-words">
-                        {getOrderPlanLabel(order) || 'No plan'}
+                        {agency ? 'Agency Project Inquiry' : getOrderPlanLabel(order) || 'No plan'}
                         {getOrderDuration(order) ? ` • ${getOrderDuration(order)}` : ''}
                       </div>
                       <div className="text-[11px] text-brand-text/55 break-words">
@@ -1098,7 +1177,9 @@ export default function AdminOrdersPage() {
                       <div className="text-[11px] text-brand-text/45 break-words">{paymentName || 'No payment method'}</div>
 
                       <div className="flex items-center justify-between gap-2">
-                        <div className="text-sm font-semibold text-primary">Rs {Number(order.totalAmount || 0).toFixed(2)}</div>
+                        <div className={`text-sm font-semibold ${agency ? 'text-cyan-300' : 'text-primary'}`}>
+                          {agency ? agencyBudget(order) : `Rs ${Number(order.totalAmount || 0).toFixed(2)}`}
+                        </div>
                         <div className={`inline-flex px-2.5 py-1 rounded-md text-[10px] font-semibold border ${statusStyles(order.status)}`}>
                           {formatOrderStatusLabel(order.status)}
                         </div>

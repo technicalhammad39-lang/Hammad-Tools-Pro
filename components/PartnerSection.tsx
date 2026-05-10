@@ -66,9 +66,6 @@ const PartnerSection = () => {
                     <Globe className="h-40 w-40 text-[#1A1A1A]" strokeWidth={1.1} />
                   )}
                 </div>
-                <div className="pointer-events-none absolute right-10 top-10 hidden h-24 w-24 rotate-12 rounded-[2rem] border border-black/10 md:block" />
-                <div className="pointer-events-none absolute bottom-10 right-24 hidden h-16 w-16 -rotate-12 rounded-full border border-black/10 md:block" />
-                
                 <div className="flex items-start justify-between gap-4">
                   <div className="w-[68px] h-[68px] md:w-[88px] md:h-[88px] rounded-2xl bg-white/80 flex items-center justify-center border border-black/10 group-hover:scale-105 transition-transform overflow-hidden relative">
                     {partner.name === 'Khaksar Agency' ? (

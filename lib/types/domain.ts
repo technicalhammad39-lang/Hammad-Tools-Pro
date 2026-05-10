@@ -183,6 +183,15 @@ export interface OrderRecord {
   updated_at?: any;
   statusUpdatedAt?: any;
   status_updated_at?: any;
+  orderType?: 'tool_order' | 'agency_service' | string;
+  source?: string;
+  sourcePage?: string;
+  projectInquiryId?: string;
+  selectedService?: string;
+  serviceName?: string;
+  company?: string;
+  budget?: string;
+  projectDetails?: string;
 
   // Legacy optional fields for backward compatibility with existing docs.
   paymentMethodId?: string;
