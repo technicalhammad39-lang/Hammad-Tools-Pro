@@ -23,13 +23,12 @@ import {
   Smartphone,
   Sparkles,
   Store,
-  Zap,
 } from 'lucide-react';
 import {
   DEFAULT_AGENCY_SERVICES,
-  DIGITAL_SERVICE_CATEGORIES,
   type AgencyServiceProfile,
 } from '@/lib/agency-service-defaults';
+import UploadedImage from '@/components/UploadedImage';
 
 type InquiryState = {
   name: string;
@@ -50,30 +49,6 @@ const initialInquiry: InquiryState = {
   budget: '',
   message: '',
 };
-
-const categoryCards = [
-  {
-    title: 'Build Your Online Presence',
-    category: 'Online Presence',
-    services: ['Web Development', 'Shopify Store', 'WooCommerce Store'],
-    description:
-      'We create fast, modern and conversion-focused websites and online stores that help your business look professional and sell better online.',
-  },
-  {
-    title: 'Automate & Scale Your Business',
-    category: 'Business Automation',
-    services: ['Software Development', 'SaaS Development', 'AI Development', 'App Development'],
-    description:
-      'We build custom software, SaaS platforms, AI tools and mobile apps that automate work, improve operations and help your business scale.',
-  },
-  {
-    title: 'Make Your Brand Impossible to Ignore',
-    category: 'Creative Branding',
-    services: ['Graphic Design', 'Logo Design', 'Brand Identity'],
-    description:
-      'We design strong visual identities, logos and marketing graphics that make your brand look premium, trusted and memorable.',
-  },
-];
 
 const processSteps = [
   ['Discovery', 'We understand your business, goals, audience and required features.'],
@@ -195,15 +170,6 @@ export default function AgencyServicesPage() {
     [services]
   );
 
-  const groupedCounts = useMemo(() => {
-    const result: Record<string, number> = {};
-    for (const category of DIGITAL_SERVICE_CATEGORIES) result[category] = 0;
-    activeServices.forEach((service) => {
-      result[service.category] = (result[service.category] || 0) + 1;
-    });
-    return result;
-  }, [activeServices]);
-
   const selectService = (serviceTitle = '') => {
     setInquiry((prev) => ({ ...prev, selectedService: serviceTitle || prev.selectedService }));
     inquiryRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -245,7 +211,7 @@ export default function AgencyServicesPage() {
               <Sparkles className="h-3.5 w-3.5" />
               Digital Solutions
             </div>
-            <h1 className="mt-6 max-w-5xl text-4xl font-black uppercase leading-[0.96] tracking-tight text-white sm:text-5xl md:text-7xl">
+            <h1 className="mt-6 max-w-4xl text-[2.35rem] font-black uppercase leading-[0.98] tracking-tight text-white sm:text-5xl md:text-6xl lg:text-[4.25rem]">
               One Digital Partner for Your Brand, Website & Business Growth
             </h1>
             <p className="mt-6 max-w-3xl text-base font-medium leading-8 text-brand-text/68 md:text-lg">
@@ -307,39 +273,11 @@ export default function AgencyServicesPage() {
         </div>
       </section>
 
-      <section className="site-container py-12 md:py-16">
-        <p className="mx-auto max-w-4xl text-center text-xl font-black leading-tight text-white md:text-3xl">
-          From first impression to full business automation — we handle your complete digital growth journey.
-        </p>
-        <div className="mt-8 grid gap-5 lg:grid-cols-3">
-          {categoryCards.map((card, index) => (
-            <article key={card.title} className="group relative overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.035] p-6 shadow-2xl shadow-black/20 transition-all duration-500 hover:-translate-y-1 hover:border-primary/30 md:p-7">
-              <div className="absolute -right-14 -top-14 h-40 w-40 rounded-full bg-primary/10 blur-2xl transition-opacity group-hover:opacity-100" />
-              <div className="relative z-10">
-                <div className="mb-5 grid h-12 w-12 place-items-center rounded-2xl border border-primary/20 bg-primary/10 text-primary">
-                  {index === 0 ? <ShoppingBag className="h-6 w-6" /> : index === 1 ? <Zap className="h-6 w-6" /> : <Palette className="h-6 w-6" />}
-                </div>
-                <h2 className="text-2xl font-black uppercase text-white">{card.title}</h2>
-                <p className="mt-4 text-sm leading-7 text-brand-text/62">{card.description}</p>
-                <div className="mt-5 flex flex-wrap gap-2">
-                  {card.services.map((service) => (
-                    <span key={service} className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[9px] font-black uppercase tracking-widest text-brand-text/52">
-                      {service}
-                    </span>
-                  ))}
-                </div>
-                <div className="mt-5 text-[9px] font-black uppercase tracking-widest text-primary">{groupedCounts[card.category] || 0} active services</div>
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section id="service-grid" className="site-container py-8 md:py-14">
+      <section id="service-grid" className="site-container py-12 md:py-16">
         <div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-end">
           <div>
-            <h2 className="text-3xl font-black uppercase text-white md:text-5xl">Digital Services</h2>
-            <p className="mt-3 max-w-2xl text-sm leading-7 text-brand-text/55">Choose the exact service you need, or start with a complete digital growth package.</p>
+            <h2 className="text-3xl font-black uppercase text-white md:text-5xl">Services Built For Digital Growth</h2>
+            <p className="mt-3 max-w-2xl text-sm leading-7 text-brand-text/55">Pick one service or combine multiple solutions into a full launch system for your business.</p>
           </div>
           {servicesLoading ? <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary"><Loader2 className="h-4 w-4 animate-spin" /> Loading live services</div> : null}
         </div>
@@ -348,31 +286,52 @@ export default function AgencyServicesPage() {
         ) : null}
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
           {activeServices.map((service) => (
-            <article key={service.id} className="group flex h-full flex-col rounded-[2rem] border border-white/10 bg-[#101010]/86 p-5 shadow-2xl shadow-black/24 transition-all duration-500 hover:-translate-y-1 hover:border-primary/30 md:p-6">
-              <div className="mb-5 flex items-start justify-between gap-4">
-                <div className="grid h-[52px] w-[52px] place-items-center rounded-2xl border border-primary/20 bg-primary/10 text-primary">
-                  {renderServiceIcon(service.icon, 'h-6 w-6')}
+            <article key={service.id} className="group relative flex h-full min-h-[560px] flex-col overflow-hidden rounded-[2rem] border border-white/10 bg-[#101010]/88 shadow-2xl shadow-black/30 transition-all duration-500 hover:-translate-y-1 hover:border-primary/35 hover:shadow-primary/10">
+              <div className="relative aspect-[16/10] overflow-hidden bg-black">
+                <UploadedImage
+                  src={service.thumbnail || service.image || '/services-card.webp'}
+                  fallbackSrc="/services-card.webp"
+                  alt={service.title}
+                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  referrerPolicy="no-referrer"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#101010] via-black/22 to-transparent" />
+                <div className="absolute left-4 top-4 rounded-full border border-white/15 bg-black/55 px-3 py-1.5 text-[8px] font-black uppercase tracking-widest text-white/70 backdrop-blur-xl">
+                  {service.category}
                 </div>
-                <span className="rounded-full border border-white/10 bg-white/[0.035] px-3 py-1.5 text-[8px] font-black uppercase tracking-widest text-brand-text/42">{service.category}</span>
+                <div className="absolute bottom-4 left-4 grid h-12 w-12 place-items-center rounded-2xl border border-primary/25 bg-primary text-black shadow-xl shadow-primary/20">
+                  {renderServiceIcon(service.icon, 'h-5 w-5')}
+                </div>
               </div>
-              <h3 className="text-2xl font-black uppercase leading-tight text-white group-hover:text-primary">{service.title}</h3>
-              <p className="mt-3 text-sm leading-7 text-brand-text/62">{service.shortDescription}</p>
-              <ul className="mt-5 grid gap-2">
-                {service.bulletPoints.slice(0, 5).map((point) => (
-                  <li key={point} className="flex items-center gap-2 text-xs font-bold text-brand-text/58">
-                    <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />
-                    {point}
-                  </li>
-                ))}
-              </ul>
-              <button
-                type="button"
-                onClick={() => selectService(service.title)}
-                className="mt-auto inline-flex items-center justify-center gap-2 rounded-xl border border-primary/25 bg-primary/10 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-primary transition-colors hover:bg-primary hover:text-black"
-              >
-                Discuss Project
-                <MessageCircle className="h-4 w-4" />
-              </button>
+
+              <div className="flex flex-1 flex-col p-5 md:p-6">
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <span className="rounded-full border border-primary/20 bg-primary/10 px-3 py-1.5 text-[8px] font-black uppercase tracking-widest text-primary">
+                    {service.badge || 'Digital Solution'}
+                  </span>
+                  <span className="text-[8px] font-black uppercase tracking-widest text-brand-text/30">
+                    {service.delivery || 'Custom Timeline'}
+                  </span>
+                </div>
+                <h3 className="text-[1.7rem] font-black uppercase leading-[0.95] text-white transition-colors group-hover:text-primary md:text-[2rem]">{service.title}</h3>
+                <p className="mt-3 text-sm leading-7 text-brand-text/62">{service.shortDescription}</p>
+                <ul className="mt-5 grid gap-2.5">
+                  {service.bulletPoints.slice(0, 5).map((point) => (
+                    <li key={point} className="flex items-center gap-2 text-xs font-bold text-brand-text/60">
+                      <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />
+                      {point}
+                    </li>
+                  ))}
+                </ul>
+                <button
+                  type="button"
+                  onClick={() => selectService(service.title)}
+                  className="mt-auto inline-flex items-center justify-center gap-2 rounded-xl border-b-4 border-secondary bg-primary px-4 py-3.5 text-[10px] font-black uppercase tracking-widest text-black shadow-xl shadow-primary/10 transition-transform hover:scale-[1.01] active:scale-[0.99]"
+                >
+                  Discuss Project
+                  <MessageCircle className="h-4 w-4" />
+                </button>
+              </div>
             </article>
           ))}
         </div>
