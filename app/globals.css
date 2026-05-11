@@ -314,53 +314,64 @@ select option:checked {
   .home-hero-section {
     min-height: auto !important;
     justify-content: flex-start !important;
-    padding-top: calc(var(--promo-ticker-height) + var(--navbar-height) + clamp(0.35rem, 1.4vw, 0.95rem)) !important;
-    padding-bottom: clamp(1.35rem, 3vw, 2.5rem) !important;
+    padding-top: calc(var(--promo-ticker-height) + var(--navbar-height) + clamp(0.45rem, 1.45vw, 1rem)) !important;
+    padding-bottom: clamp(1.25rem, 2.75vw, 2.35rem) !important;
+    background:
+      radial-gradient(circle at 50% 14%, rgba(255, 214, 0, 0.12), transparent 38%),
+      radial-gradient(circle at 82% 72%, rgba(255, 140, 42, 0.09), transparent 36%),
+      #0f0f0f !important;
+  }
+
+  .home-hero-section video {
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
   }
 
   .home-hero-section .site-container-wide {
-    width: calc(100% - clamp(1.5rem, 4vw, 3.5rem)) !important;
+    width: calc(100% - clamp(0.85rem, 2vw, 1.55rem)) !important;
     max-width: none !important;
   }
 
   .home-hero-grid {
     grid-template-columns: minmax(0, 1fr) !important;
-    gap: clamp(1rem, 2.4vw, 1.7rem) !important;
+    gap: clamp(1rem, 2vw, 1.6rem) !important;
+    justify-items: center !important;
   }
 
   .home-hero-copy {
     width: 100% !important;
-    max-width: 100% !important;
-    margin-inline: 0 !important;
-    align-items: flex-start !important;
-    text-align: left !important;
+    max-width: min(64rem, 100%) !important;
+    margin-inline: auto !important;
+    align-items: center !important;
+    text-align: center !important;
   }
 
   .home-hero-copy h1,
   .home-hero-copy p {
-    text-align: left !important;
+    text-align: center !important;
   }
 
   .home-hero-copy h1 > span:first-child {
-    font-size: clamp(2.7rem, 5.6vw, 4.4rem) !important;
+    font-size: clamp(3rem, 6.2vw, 4.8rem) !important;
   }
 
   .home-hero-dynamic-ghost,
   .home-hero-dynamic-text {
-    margin-inline: 0 !important;
-    font-size: clamp(4rem, 8.5vw, 6.35rem) !important;
+    margin-inline: auto !important;
+    font-size: clamp(4.45rem, 9.4vw, 7rem) !important;
   }
 
   .home-hero-description {
-    max-width: min(46rem, 100%) !important;
-    margin-inline: 0 !important;
-    font-size: clamp(0.98rem, 1.75vw, 1.2rem) !important;
-    line-height: 1.58 !important;
+    max-width: min(52rem, 100%) !important;
+    margin-inline: auto !important;
+    font-size: clamp(1.05rem, 2vw, 1.3rem) !important;
+    line-height: 1.62 !important;
   }
 
   .home-hero-actions {
     display: grid !important;
-    width: min(100%, 44rem) !important;
+    width: min(100%, 48rem) !important;
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 0.75rem !important;
   }
@@ -376,13 +387,38 @@ select option:checked {
   .home-hero-actions button {
     width: 100% !important;
     min-width: 0 !important;
-    height: 54px !important;
+    height: 58px !important;
     padding-inline: 1.35rem !important;
   }
 
+  .home-hero-actions button span {
+    font-size: clamp(0.72rem, 1.25vw, 0.86rem) !important;
+    letter-spacing: 0.11em !important;
+  }
+
+  .home-hero-actions button svg {
+    width: clamp(1rem, 1.6vw, 1.2rem) !important;
+    height: clamp(1rem, 1.6vw, 1.2rem) !important;
+  }
+
   .home-hero-trust {
-    justify-content: flex-start !important;
-    text-align: left !important;
+    justify-content: center !important;
+    text-align: center !important;
+    gap: clamp(1.15rem, 2.8vw, 2rem) !important;
+  }
+
+  .home-hero-trust > div:first-child > div {
+    width: clamp(3rem, 5vw, 3.7rem) !important;
+    height: clamp(3rem, 5vw, 3.7rem) !important;
+  }
+
+  .home-hero-trust svg {
+    width: clamp(1.2rem, 2vw, 1.55rem) !important;
+    height: clamp(1.2rem, 2vw, 1.55rem) !important;
+  }
+
+  .home-hero-trust p {
+    font-size: clamp(0.82rem, 1.45vw, 1rem) !important;
   }
 
   .home-hero-review-stage {
@@ -392,17 +428,17 @@ select option:checked {
 
 @media (min-width: 768px) and (max-width: 1199px) and (orientation: landscape) {
   .home-hero-section {
-    padding-top: calc(var(--promo-ticker-height) + var(--navbar-height) + clamp(0.25rem, 1.6vh, 0.8rem)) !important;
-    padding-bottom: clamp(1rem, 3vh, 1.8rem) !important;
+    padding-top: calc(var(--promo-ticker-height) + var(--navbar-height) + clamp(0.35rem, 1.6vh, 0.85rem)) !important;
+    padding-bottom: clamp(1rem, 3vh, 1.9rem) !important;
   }
 
   .home-hero-copy h1 > span:first-child {
-    font-size: clamp(2.45rem, 4.9vw, 4.1rem) !important;
+    font-size: clamp(2.75rem, 5.2vw, 4.45rem) !important;
   }
 
   .home-hero-dynamic-ghost,
   .home-hero-dynamic-text {
-    font-size: clamp(3.7rem, 7.5vw, 5.9rem) !important;
+    font-size: clamp(4.1rem, 8.2vw, 6.45rem) !important;
   }
 }
 
